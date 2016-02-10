@@ -1,0 +1,301 @@
+sis> UC Berkeley, SIS 1.3 (compiled 20-Mar-00 at 1:56 PM)
+sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=1380	latches=69
+lits(sop)=3309	lits(fac)=3244
+Total number of levels = 111
+elapse: 0.4 seconds, total: 0.4 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=1411	latches=69
+lits(sop)=3275	lits(fac)=3275
+Total number of levels = 114
+elapse: 0.1 seconds, total: 0.5 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=1999	latches=69
+lits(sop)=3863	lits(fac)=3863
+Total number of levels = 153
+elapse: 0.8 seconds, total: 1.4 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=1999	latches=69
+lits(sop)=3809	lits(fac)=3809
+Total number of levels = 177
+elapse: 0.8 seconds, total: 2.1 seconds
+Verif_Gsm_Uplink.opt.rel.blif: No such file or directory
+Warning: can't read network "Verif_Gsm_Uplink.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 69     depth = 40     states visited = 120922
+UPLINK_572_61 	pi=83	po=618	nodes=1999	latches=69
+lits(sop)=3809	lits(fac)=3809
+Total number of levels = 177
+elapse: 109.9 seconds, total: 112.0 seconds
+UPLINK_572_61 	pi=83	po=618	nodes=1999	latches=69
+lits(sop)=3809	lits(fac)=3809
+Total number of levels = 177
+elapse: 0.1 seconds, total: 112.1 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=673	latches=66
+lits(sop)=1217	lits(fac)=1217
+Total number of levels = 20
+elapse: 154.2 seconds, total: 266.3 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=673	latches=66
+lits(sop)=1217	lits(fac)=1217
+Total number of levels = 20
+elapse: 4.3 seconds, total: 270.6 seconds
+sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=673	latches=66
+lits(sop)=1217	lits(fac)=1217
+Total number of levels = 20
+elapse: 0.1 seconds, total: 270.7 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=373	latches=66
+lits(sop)= 914	lits(fac)= 893
+Total number of levels = 18
+elapse: 0.3 seconds, total: 271.0 seconds
+sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=373	latches=66
+lits(sop)= 891	lits(fac)= 867
+Total number of levels = 18
+elapse: 0.9 seconds, total: 271.9 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=373	latches=66
+lits(sop)= 891	lits(fac)= 867
+Total number of levels = 18
+elapse: 0.1 seconds, total: 272.0 seconds
+sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=382	latches=66
+lits(sop)= 874	lits(fac)= 866
+Total number of levels = 18
+elapse: 0.1 seconds, total: 272.1 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=382	latches=66
+lits(sop)= 874	lits(fac)= 866
+Total number of levels = 26
+elapse: 0.2 seconds, total: 272.3 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> Verif_Gsm_Uplink.opt.rel.blif: No such file or directory
+Warning: can't read network "Verif_Gsm_Uplink.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 66     depth = 40     states visited = 116972
+UPLINK_572_61 	pi=83	po=618	nodes=382	latches=66
+lits(sop)= 874	lits(fac)= 866
+Total number of levels = 26
+elapse: 54.5 seconds, total: 326.9 seconds
+UPLINK_572_61 	pi=83	po=618	nodes=382	latches=66
+lits(sop)= 874	lits(fac)= 866
+Total number of levels = 26
+elapse: 0.0 seconds, total: 326.9 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=382	latches=66
+lits(sop)= 874	lits(fac)= 866
+Total number of levels = 18
+elapse: 23.7 seconds, total: 350.6 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=382	latches=66
+lits(sop)= 874	lits(fac)= 866
+Total number of levels = 18
+elapse: 2.3 seconds, total: 352.9 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=382	latches=66
+lits(sop)= 874	lits(fac)= 866
+Total number of levels = 18
+elapse: 0.1 seconds, total: 353.0 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=387	latches=66
+lits(sop)= 871	lits(fac)= 871
+Total number of levels = 18
+elapse: 0.1 seconds, total: 353.1 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=620	latches=66
+lits(sop)=1104	lits(fac)=1104
+Total number of levels = 20
+elapse: 0.3 seconds, total: 353.4 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=620	latches=66
+lits(sop)=1102	lits(fac)=1102
+Total number of levels = 23
+elapse: 0.2 seconds, total: 353.6 seconds
+Verif_Gsm_Uplink.opt.rel.blif: No such file or directory
+Warning: can't read network "Verif_Gsm_Uplink.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 66     depth = 40     states visited = 116972
+UPLINK_572_61 	pi=83	po=618	nodes=620	latches=66
+lits(sop)=1102	lits(fac)=1102
+Total number of levels = 23
+elapse: 55.0 seconds, total: 408.6 seconds
+UPLINK_572_61 	pi=83	po=618	nodes=620	latches=66
+lits(sop)=1102	lits(fac)=1102
+Total number of levels = 23
+elapse: 0.0 seconds, total: 408.7 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=615	latches=66
+lits(sop)=1094	lits(fac)=1094
+Total number of levels = 20
+elapse: 37.8 seconds, total: 446.4 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=615	latches=66
+lits(sop)=1094	lits(fac)=1094
+Total number of levels = 20
+elapse: 2.2 seconds, total: 448.7 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> Verif_Gsm_Uplink.opt.rel.blif: No such file or directory
+Warning: can't read network "Verif_Gsm_Uplink.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 66     depth = 40     states visited = 116972
+UPLINK_572_61 	pi=83	po=618	nodes=615	latches=66
+lits(sop)=1094	lits(fac)=1094
+Total number of levels = 20
+elapse: 53.4 seconds, total: 502.1 seconds
+UPLINK_572_61 	pi=83	po=618	nodes=615	latches=66
+lits(sop)=1094	lits(fac)=1094
+Total number of levels = 20
+elapse: 0.0 seconds, total: 502.1 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=615	latches=66
+lits(sop)=1094	lits(fac)=1094
+Total number of levels = 20
+elapse: 22.3 seconds, total: 524.4 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=615	latches=66
+lits(sop)=1094	lits(fac)=1094
+Total number of levels = 20
+elapse: 2.2 seconds, total: 526.6 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=615	latches=66
+lits(sop)=1094	lits(fac)=1094
+Total number of levels = 20
+elapse: 0.1 seconds, total: 526.7 seconds
+sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=615	latches=66
+lits(sop)=1094	lits(fac)=1094
+Total number of levels = 20
+elapse: 0.1 seconds, total: 526.8 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=256	latches=66
+lits(sop)=1059	lits(fac)= 981
+Total number of levels = 12
+elapse: 0.3 seconds, total: 527.1 seconds
+sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=256	latches=66
+lits(sop)= 838	lits(fac)= 798
+Total number of levels = 14
+elapse: 1.3 seconds, total: 528.3 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=256	latches=66
+lits(sop)= 838	lits(fac)= 798
+Total number of levels = 14
+elapse: 0.1 seconds, total: 528.4 seconds
+sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=274	latches=66
+lits(sop)= 790	lits(fac)= 784
+Total number of levels = 17
+elapse: 0.1 seconds, total: 528.5 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=274	latches=66
+lits(sop)= 790	lits(fac)= 784
+Total number of levels = 21
+elapse: 0.2 seconds, total: 528.7 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=234	latches=66
+lits(sop)= 787	lits(fac)= 748
+Total number of levels = 17
+elapse: 0.1 seconds, total: 528.9 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=234	latches=66
+lits(sop)= 785	lits(fac)= 747
+Total number of levels = 17
+elapse: 0.7 seconds, total: 529.6 seconds
+sis> sis> sis> sis> Verif_Gsm_Uplink.opt.rel.blif: No such file or directory
+Warning: can't read network "Verif_Gsm_Uplink.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 66     depth = 40     states visited = 116972
+UPLINK_572_61 	pi=83	po=618	nodes=234	latches=66
+lits(sop)= 785	lits(fac)= 747
+Total number of levels = 17
+elapse: 54.2 seconds, total: 583.8 seconds
+UPLINK_572_61 	pi=83	po=618	nodes=234	latches=66
+lits(sop)= 785	lits(fac)= 747
+Total number of levels = 17
+elapse: 0.0 seconds, total: 583.8 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=234	latches=66
+lits(sop)= 709	lits(fac)= 681
+Total number of levels = 17
+elapse: 48.2 seconds, total: 632.0 seconds
+sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=234	latches=66
+lits(sop)= 709	lits(fac)= 681
+Total number of levels = 17
+elapse: 1.1 seconds, total: 633.1 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=228	latches=66
+lits(sop)= 703	lits(fac)= 675
+Total number of levels = 16
+elapse: 2.1 seconds, total: 635.2 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=235	latches=66
+lits(sop)= 682	lits(fac)= 682
+Total number of levels = 16
+elapse: 0.1 seconds, total: 635.3 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=582	latches=66
+lits(sop)=1029	lits(fac)=1029
+Total number of levels = 20
+elapse: 0.3 seconds, total: 635.6 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=582	latches=66
+lits(sop)=1018	lits(fac)=1018
+Total number of levels = 23
+elapse: 0.2 seconds, total: 635.9 seconds
+Verif_Gsm_Uplink.opt.rel.blif: No such file or directory
+Warning: can't read network "Verif_Gsm_Uplink.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 66     depth = 40     states visited = 116972
+UPLINK_572_61 	pi=83	po=618	nodes=582	latches=66
+lits(sop)=1018	lits(fac)=1018
+Total number of levels = 23
+elapse: 21.4 seconds, total: 657.2 seconds
+UPLINK_572_61 	pi=83	po=618	nodes=582	latches=66
+lits(sop)=1018	lits(fac)=1018
+Total number of levels = 23
+elapse: 0.0 seconds, total: 657.3 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=570	latches=66
+lits(sop)=1005	lits(fac)=1005
+Total number of levels = 20
+elapse: 38.2 seconds, total: 695.5 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=570	latches=66
+lits(sop)=1005	lits(fac)=1005
+Total number of levels = 20
+elapse: 0.4 seconds, total: 695.9 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=570	latches=66
+lits(sop)=1005	lits(fac)=1005
+Total number of levels = 20
+elapse: 0.1 seconds, total: 695.9 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> Verif_Gsm_Uplink.opt.rel.blif: No such file or directory
+Warning: can't read network "Verif_Gsm_Uplink.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 66     depth = 40     states visited = 116972
+UPLINK_572_61 	pi=83	po=618	nodes=570	latches=66
+lits(sop)=1005	lits(fac)=1005
+Total number of levels = 20
+elapse: 21.1 seconds, total: 717.1 seconds
+UPLINK_572_61 	pi=83	po=618	nodes=570	latches=66
+lits(sop)=1005	lits(fac)=1005
+Total number of levels = 20
+elapse: 0.0 seconds, total: 717.1 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=570	latches=66
+lits(sop)=1005	lits(fac)=1005
+Total number of levels = 20
+elapse: 22.1 seconds, total: 739.2 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=570	latches=66
+lits(sop)=1005	lits(fac)=1005
+Total number of levels = 20
+elapse: 0.4 seconds, total: 739.6 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=570	latches=66
+lits(sop)=1005	lits(fac)=1005
+Total number of levels = 20
+elapse: 0.1 seconds, total: 739.7 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=325	latches=66
+lits(sop)= 777	lits(fac)= 760
+Total number of levels = 16
+elapse: 0.2 seconds, total: 739.9 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=325	latches=66
+lits(sop)= 776	lits(fac)= 759
+Total number of levels = 16
+elapse: 0.8 seconds, total: 740.6 seconds
+sis> sis> sis> sis> Verif_Gsm_Uplink.opt.rel.blif: No such file or directory
+Warning: can't read network "Verif_Gsm_Uplink.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 66     depth = 40     states visited = 116972
+UPLINK_572_61 	pi=83	po=618	nodes=325	latches=66
+lits(sop)= 776	lits(fac)= 759
+Total number of levels = 16
+elapse: 21.0 seconds, total: 761.6 seconds
+UPLINK_572_61 	pi=83	po=618	nodes=325	latches=66
+lits(sop)= 776	lits(fac)= 759
+Total number of levels = 16
+elapse: 0.0 seconds, total: 761.7 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=325	latches=66
+lits(sop)= 774	lits(fac)= 758
+Total number of levels = 16
+elapse: 41.2 seconds, total: 802.9 seconds
+sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=325	latches=66
+lits(sop)= 774	lits(fac)= 758
+Total number of levels = 16
+elapse: 0.5 seconds, total: 803.4 seconds
+sis> UPLINK_572_61 	pi=83	po=618	nodes=325	latches=66
+lits(sop)= 774	lits(fac)= 758
+Total number of levels = 16
+elapse: 0.3 seconds, total: 803.7 seconds
+sis> sis> sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=328	latches=66
+lits(sop)= 766	lits(fac)= 761
+Total number of levels = 16
+elapse: 0.1 seconds, total: 803.8 seconds
+sis> sis> sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=328	latches=66
+lits(sop)= 766	lits(fac)= 761
+Total number of levels = 24
+elapse: 0.2 seconds, total: 804.0 seconds
+sis> sis> UPLINK_572_61 	pi=83	po=618	nodes=328	latches=66
+lits(sop)= 766	lits(fac)= 761
+Total number of levels = 24
+elapse: 0.1 seconds, total: 804.1 seconds

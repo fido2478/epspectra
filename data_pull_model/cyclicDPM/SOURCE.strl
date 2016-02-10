@@ -1,0 +1,67 @@
+%
+%   SOURCE module 
+%
+
+module SOURCE:
+
+type StrlSampleRange;
+%{type Debug4Var;}%
+
+constant INITIAL_RANGE : StrlSampleRange;
+
+input start_mark;
+input start_compute;%{compute}%
+input input_compute:integer;%{compute}%
+output output_compute:integer;%{compute}%
+
+output source_name:string;
+input input_sample_range:StrlSampleRange;
+
+output My_return_value:integer;
+
+%{output temp:Debug4Var;signal for debugging}%
+output MyMarkedData:StrlSampleRange;
+%{procedure LOCALAWAITTICKSTART()(string); }% %{perfgraph}%
+%{procedure LOCALAWAITTICKSTOP()(string); }% %{perfgraph}%
+procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+%
+%  body part
+%
+
+signal My_Name:string,
+    My_Sample_Range:=INITIAL_RANGE:StrlSampleRange in
+trap body_loop in 
+   loop
+      present start_mark then
+	 [
+	 emit My_Sample_Range(?input_sample_range);
+	 emit My_Name(?source_name);
+	 ||
+	 run MARK_DATA_SRC[signal My_Name/name_module;
+			   signal My_Sample_Range/sample_range;
+			   signal My_return_value/return_value
+			   %{signal temp/debug_temp}%];
+	 exit body_loop;
+	 ];
+      end present;
+      present start_compute then
+	 [
+	 emit My_Name(?source_name);
+	 ||
+	 run COMPUTE_DATA_SRC[signal My_Name/name_module;
+			  signal input_compute/get_sig;
+			  signal output_compute/return_sig;
+			  signal MyMarkedData/MYMARKED_DATA
+			  %{signal temp/debug_temp}%];
+	 exit body_loop;
+	 ];
+      end present;
+      call LOCALINCAWAITTICK()(?source_name);%{perfgraph}%
+%{      call LOCALAWAITTICKSTART()(?source_name);}% %{perfgraph}%
+      await tick;
+%{      call LOCALAWAITTICKSTOP()(?source_name);}%  %{perfgraph}%
+   end loop
+end trap
+end signal
+end module
+

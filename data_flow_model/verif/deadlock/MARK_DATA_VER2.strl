@@ -1,0 +1,14 @@
+%##########################################################
+%#  This module is to control Mark_Data modules.
+%##########################################################
+
+module MARK_DATA:
+
+%
+% body part
+%
+
+await tick;
+await tick;
+await tick;
+end module

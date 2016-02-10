@@ -1,0 +1,96 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission.
+%
+%################################
+%   P_MOD1to2 module 
+%################################
+
+module P_MOD1to2:
+
+type StrlSampleRange;
+
+constant INITIAL_RANGE:StrlSampleRange;
+
+input Name:string;
+input S_Mark_from_Up:StrlSampleRange;%{Input_Sample_Range}%
+input Ack_From_Down1:StrlSampleRange;%{for down module1}%
+input Ack_From_Down2:StrlSampleRange;%{for down module2}%
+output E_Mark_to_Down:StrlSampleRange;%{Output_Sample_Range for down module1 & 2}%
+input S_Compute_from_Up;%{trigger my compute method}%
+output E_Compute_to_Down;%{for down module}%
+output Ack_to_Up:StrlSampleRange;%{inform the upstream of finishing computing}%
+input snooping;
+output sig_on; %{trigger TIMER on the upstream}%
+output Ready2Receive;
+output ComputedSRange : StrlSampleRange;
+
+function CHECKSAMPLESIZE(StrlSampleRange,StrlSampleRange):integer;
+function UPDATESAMPLE(StrlSampleRange):StrlSampleRange;
+%procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+%
+%  body part
+%
+var CONT_FLAG:=false:boolean,
+    org_input:=INITIAL_RANGE:StrlSampleRange,
+    my_input:=INITIAL_RANGE:StrlSampleRange in
+signal My_Sample_Range:=INITIAL_RANGE:StrlSampleRange,
+       forecast_range:=INITIAL_RANGE:StrlSampleRange,
+       switch_on, switch_off,INI_PHASE:boolean in
+   [
+      emit INI_PHASE(true);
+      loop
+	 present INI_PHASE then
+	    await immediate S_Mark_from_Up;
+	    emit switch_on;
+	    org_input:=?S_Mark_from_Up;
+	    emit My_Sample_Range(org_input)
+	 else
+	    run WAIT_SIG2[signal S_Mark_from_Up/IN1;
+			  signal Ack_From_Down1/IN2;
+			  signal Ack_From_Down2/IN3];
+	    emit switch_on;
+	    org_input:=?S_Mark_from_Up;
+	    emit My_Sample_Range(org_input)
+	 end present;
+	 trap compute_loop in
+	    loop
+	       if CONT_FLAG then
+		  run WAIT_SIG1[signal Ack_From_Down1/IN1;
+			       signal Ack_From_Down2/IN2];
+		  emit My_Sample_Range(my_input);
+	       end if;
+	       run FIT_RANGE_MOD[signal E_Mark_to_Down/output_sample_range;
+			     signal forecast_range/input_sample_range];
+	       my_input:=?forecast_range;
+	       emit switch_off;
+	       emit Ready2Receive;
+	       await immediate S_Compute_from_Up;
+	       run COMP_DATA;
+%	       call LOCALINCAWAITTICK()(?Name);%{perfgraph}%
+	       await tick;
+	       run TIMER;
+	       emit E_Compute_to_Down;
+	       if CHECKSAMPLESIZE(org_input,my_input)>=0 then
+		  my_input:=UPDATESAMPLE(my_input);
+		  CONT_FLAG:=true
+	       else
+		  CONT_FLAG:=false;
+		  exit compute_loop
+	       end if;
+	    end loop;
+	 end trap;
+	 emit Ack_to_Up(my_input);
+      end loop
+   ||
+      run SWITCH;
+   ]
+end signal
+end var
+end module

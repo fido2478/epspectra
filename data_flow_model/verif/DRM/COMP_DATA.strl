@@ -1,0 +1,76 @@
+%##########################################################
+%#  This module is to control COMPUTE_DATA modules.
+%##########################################################
+
+module COMP_DATA:
+
+type StrlSampleIndex;
+type StrlSampleRange;
+type StrlSampleSize;
+type Debug4Var;
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_SIZE : StrlSampleSize;
+constant INITIAL_RANGE : StrlSampleRange;
+constant INITIAL_DEBUG4VAR : Debug4Var;
+
+input Name : string;
+output ComputedSRange;
+
+function DEBUG_INT(string,integer):Debug4Var;
+function DEBUG_INDEX(string,StrlSampleIndex):Debug4Var;
+function DEBUG_RANGE(string,StrlSampleRange):Debug4Var;
+function CHECK_MYWRITERLL(string):integer;
+function CHECK_MYMARKEDDATA_SIZE(string):integer;
+function GET_NUMBERINPUTS(string):integer;
+function REALCOMPUTEDATA(string,integer):StrlSampleSize;
+function CMPSAMPLESIZE(StrlSampleSize,StrlSampleSize):integer;
+function GET_MYMARKEDINDEX(string):StrlSampleIndex;
+function GET_MYMARKEDSIZE(string):StrlSampleSize;
+function GET_MYMARKEDDATA(string):StrlSampleRange;
+procedure SET_MARKEDWP()(string,StrlSampleIndex);
+function ADD_SAMPLEINDEX(StrlSampleIndex,StrlSampleSize):StrlSampleIndex;
+procedure WRITEDATA()(string,integer);
+function GETWP(string):StrlSampleIndex;
+%procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+%
+% body part
+%
+var temp_int:=0:integer,
+    not_source:=0:integer,
+    not_complete_flag:=0:integer,
+    temp_index:=INITIAL_INDEX:StrlSampleIndex,
+    temp_range:=INITIAL_RANGE:StrlSampleRange,
+    complete_var:=INITIAL_SIZE:StrlSampleSize in
+   trap EXIT_FUNC in
+      trap GOTO_UNMARK in
+
+	 if CHECK_MYWRITERLL(?Name)=0 then
+	    exit EXIT_FUNC
+	 end if;
+
+	 if CHECK_MYMARKEDDATA_SIZE(?Name)=0 then
+	    exit EXIT_FUNC
+	 end if;
+
+	 if GET_NUMBERINPUTS(?Name)>0 then %{beginif - source skips}%
+	    not_source:=1;
+	 end if;
+
+	 complete_var:=REALCOMPUTEDATA(?Name,not_source);
+	 
+	 if CMPSAMPLESIZE(GET_MYMARKEDSIZE(?Name),complete_var)>0 then
+	    not_complete_flag:=not_complete_flag-1
+	 end if;
+      end trap;%{GOTO_UNMARK}%
+%{start Unmark section}%
+      if not_complete_flag < 0 then
+	 temp_index:=ADD_SAMPLEINDEX(GET_MYMARKEDINDEX(?Name),complete_var);
+	 call SET_MARKEDWP()(?Name,temp_index)
+      end if;
+      call WRITEDATA()(?Name,not_source);
+      temp_index:=GETWP(?Name);
+      emit ComputedSRange;
+   end trap
+end var
+end module

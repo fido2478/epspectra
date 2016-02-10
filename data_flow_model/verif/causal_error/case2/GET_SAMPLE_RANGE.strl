@@ -1,0 +1,24 @@
+%##########################################################
+%#  This module is to control GET_SAMPLE_RANGE modules.
+%##########################################################
+
+module GET_SAMPLE_RANGE:
+
+type StrlSampleRange;
+
+constant INITIAL_RANGE : StrlSampleRange;
+
+input name_module : string;
+
+
+output LOCAL_S_RANGE:StrlSampleRange;
+
+function GET_S_RANGE(string):StrlSampleRange;
+
+%
+% body part
+%
+
+emit LOCAL_S_RANGE(GET_S_RANGE(?name_module));
+
+end module

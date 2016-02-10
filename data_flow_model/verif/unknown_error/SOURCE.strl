@@ -1,0 +1,44 @@
+%#############################################################
+% Source module
+% There is no time-delay between marking and computing method.
+% ############################################################
+
+module SOURCE:
+
+type StrlSampleRange;
+constant INITIAL_RANGE:StrlSampleRange;
+
+input Name:string;
+input Ack_From_Down:StrlSampleRange;
+output E_Mark_to_Down:StrlSampleRange;%{notify my mark finished to down}%
+output E_Compute_to_Down;%{trigger compute method of downstream}%
+input snooping;
+%
+%  body part
+%
+
+var INITIAL_FLAG:=true:boolean, 
+    My_Name:="name":string,
+    my_output:=INITIAL_RANGE:StrlSampleRange in
+
+signal My_Sample_Range:=INITIAL_RANGE:StrlSampleRange,R_Name:string in
+
+   await immediate Name;
+   My_Name:=?Name;
+   every immediate Ack_From_Down do
+      my_output:=?Ack_From_Down;
+      emit My_Sample_Range(my_output);
+      emit R_Name(My_Name);
+      run FIT_RANGE_SRC[signal R_Name/name_module;
+			signal My_Sample_Range/sample_range;
+			signal E_Mark_to_Down/output_sample_range];
+%{      emit E_Mark_to_Down;}%
+      
+      run COMP_DATA[signal R_Name/name_module];
+      run TIMER[signal snooping/set_on];
+      emit E_Compute_to_Down;
+   end every
+
+end signal
+end var
+end module

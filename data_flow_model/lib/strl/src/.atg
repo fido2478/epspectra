@@ -1,0 +1,36 @@
+autograph version 3
+window"Autograph Window"" Autograph Window   /home/hkim/project/data_flow_model/lib/strl/src/.atg""/home/hkim/project/data_flow_model/lib/strl/src/SOURCE.opt.fc2"73 114 827 581 3137 581
+labels 10
+   0: "initial>unknown_label"
+   1: "automaton"
+   2: "~BOOT_REGISTER_0_0,~PAUSE_REG_6_0_0,~PAUSE_REG_120_4_0,~PAUSE_REG_124_4_0,~PAUSE_REG_71_1_0"
+   3: "tau+!ROOT_K0_0_0+!ROOT_K1_0_0+!ROOT_K1_0_0.!ROOT_K0_0_0"
+   4: "~BOOT_REGISTER_0_0,~PAUSE_REG_6_0_0,~PAUSE_REG_120_4_0,~PAUSE_REG_124_4_0,PAUSE_REG_71_1_0"
+   5: "!E_Mark_to_Down+!E_Mark_to_Down+!E_Mark_to_Down.!ComputedSRange+!ROOT_K0_0_0.!E_Mark_to_Down+!ROOT_K0_0_0.!E_Mark_to_Down+!ROOT_K0_0_0.!E_Mark_to_Down.!ComputedSRange+!ROOT_K1_0_0.!E_Mark_to_Down+!ROOT_K1_0_0.!E_Mark_to_Down+!ROOT_K1_0_0.!E_Mark_to_Down.!ComputedSRange+!ROOT_K1_0_0.!ROOT_K0_0_0.!E_Mark_to_Down+!ROOT_K1_0_0.!ROOT_K0_0_0.!E_Mark_to_Down+!ROOT_K1_0_0.!ROOT_K0_0_0.!E_Mark_to_Down.!ComputedSRange"
+   6: "~BOOT_REGISTER_0_0,~PAUSE_REG_6_0_0,~PAUSE_REG_120_4_0,PAUSE_REG_124_4_0,~PAUSE_REG_71_1_0"
+   7: "~BOOT_REGISTER_0_0,~PAUSE_REG_6_0_0,PAUSE_REG_120_4_0,~PAUSE_REG_124_4_0,~PAUSE_REG_71_1_0"
+   8: "!E_Compute_to_Down+!ROOT_K0_0_0.!E_Compute_to_Down+!ROOT_K1_0_0.!E_Compute_to_Down+!ROOT_K1_0_0.!ROOT_K0_0_0.!E_Compute_to_Down"
+   9: "BOOT_REGISTER_0_0,~PAUSE_REG_6_0_0,~PAUSE_REG_120_4_0,~PAUSE_REG_124_4_0,~PAUSE_REG_71_1_0"
+boxes
+   0: 0 0 0 0 names name logic 0 h 0 0  hook 1 h 0 0  
+vertices
+   0: 536 222 names name struct 2 h 218 215  
+   1: 365 275 names name struct 4 h 50 268  
+   2: 331 363 names name struct 6 h 16 356  
+   3: 227 246  unexpl names name struct 7 h -88 239  
+   4: initial  436 177 names name struct 9 h 121 170  
+edges
+   0: 0 0 p 540 215 p 561 185 names name behav 3 h 556 253  p 592 263 p 542 226
+   1: 0 1 p 372 278 p 471 321 names name behav 3 h 451 303  p 531 228
+   2: 1 1 p 365 267 p 367 230 names name behav 3 h 236 210  p 325 239 p 359 269
+   3: 1 2 p 333 355 names name behav 5 h 226 300  p 362 282
+   4: 1 3 p 234 247 names name behav 5 h 294 259  p 357 273
+   5: 2 1 p 367 282 p 394 364 names name behav 3 h 367 365  p 338 363
+   6: 2 2 p 332 370 p 341 420 names name behav 3 h 306 412  p 273 406 p 324 367
+   7: 2 3 p 226 253 p 225 341 names name behav 3 h 50 439  p 323 361
+   8: 3 0 names name behav 8 h 0 0  
+   9: 3 1 names name behav 3 h 0 0  
+   10: 3 3 names name behav 3 h 0 0  
+   11: 4 0 p 528 218 names name behav 3 h 484 199  p 443 180
+   12: 4 1 p 369 268 names name behav 3 h 391 207  p 431 183
+   13: 4 4 p 435 169 p 435 135 names name behav 3 h 413 146  p 394 155 p 428 173

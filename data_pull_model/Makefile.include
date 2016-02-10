@@ -1,0 +1,112 @@
+
+#######################################################################
+# CONFIGURATION SECTION - Change the parameters to match your machine #
+#                         and installation                            #
+#######################################################################
+# Where the Esterel compiler lives.
+#ESTEREL_DIR= /usr/local
+ifneq (,)
+This makefile requires GNU Make.
+endif
+
+BASE_DIR = $(SPECTRA_BASE)
+
+# esterel compiler
+ESTEREL_V603    = esterelv6_03-3
+ESTEREL_V6 	= esterelv6
+ESTEREL_V592 	= esterelv5_92
+DDDXES 		= dddxes
+AREAOPT_V603	= areaopt
+REMLATCH	= remlatch
+BLIFOPT		= blifopt
+BLIFSSC 	= blifssc
+BLIFSC_V6 	= blifscv6
+BLIFSC_V603	= blifsc_dev
+SCLINK_V603	= sclinkv6_03-3
+SCLINK_DEV	= sclink
+
+ESTEREL		= $(ESTEREL_V603)
+BLIFSC		= $(BLIFSC_V603)
+AREAOPT		= $(AREAOPT_V603)
+
+# esterel compiling flags
+IFLAG		= -I
+SANITY  	= -Icheck 
+CAUSAL		= -causal
+SIMUL		= -simul
+STRLFLAGS 	= -DSTRLEN=80 
+# uncomment this option is your C compiler requires Ansi code
+# This is the case for AIX.
+COMPILER_FLAGS 	= #-Ic:-ansi
+
+# where to find simulator libraries (normally, change only ESTEREL_LIB)
+#ESTEREL_LIB 	= /usr/local/src/esterelv6_03-2.linux/lib
+#CSIMUL_A    	= $(ESTEREL_LIB)/libcsimul.a
+XES         	= xes
+
+#MAKEFILE    = makefile.Unix
+MAKE	    = make
+MV          = mv
+COPY        = cp
+RM          = rm -f
+IFEXIST     = test -f
+IFNOTEXIST  = test ! -f
+THEN        = &&
+
+GPROF	    = 
+#-pg
+DBUG        = 
+#-g
+OPTIMA	    = -O
+CC          = gcc $(GPROF) $(DBUG) $(OPTIMA)
+C++	    = g++ $(GPROF) $(DBUG) $(OPTIMA)
+G++ 	    = g++ $(DBUG) $(GPROF) $(OPTIMA)
+AS 	    = /net/home/hkim/project/data_flow_model/lib/c++/nasm/nasm
+CC_CFLAGS   = -o $@
+LINKER      = $(C++)
+LINKER_FLAGS= -o $@
+TK_CFLAGS   =
+PATHSEP     = /
+OBJ         = .o
+EXE         = .exe
+
+#QTDIR = $(SPECTRADIR)/lib/qt
+
+INC = $(INC_SYSTEM) -I. -I$(BASE_DIR)/cc -I$(BASE_DIR)/c++ -I$(BASE_DIR)/c++/snk -I$(BASE_DIR)/c++/src -I$(BASE_DIR)/c++/p_mod 
+#-I$(BASE_DIR)/c++/perf
+
+ifeq ($(HOSTTYPE),i386)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i486)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i586)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i686)
+  MMX = yes
+endif
+
+DEFINES =$(SPECTRA_DEFINES) -DUSE_LIBGXX_INLINES -D_REENTRANT -DCACHESIZE=262144 -D_GUI_DEFINE -DPERFMON
+#-D_PERF 
+#-DTHREADS
+#-DCACHESIZE=32768
+#-DCACHESIZE=262144
+#-DCACHESIZE=524288
+#-DCACHESIZE=10485760
+
+ifdef MMX
+  ### Comment out this line to disable MMX
+  DEFINES := $(DEFINES) -DENABLE_MMX
+endif
+
+CFLAGS = -Wall  $(DEFINES) 
+
+STRLINC = $(INC_SYSTEM) -I. -I$(BASE_DIR)/i_mod -I$(BASE_DIR)/snk -I$(BASE_DIR)/src -I$(BASE_DIR)/submod -I$(BASE_DIR)/include -I$(BASE_DIR)/cc
+
+CCINC 	= $(INC_SYSTEM) -I. -I$(BASE_DIR)/cc -I$(BASE_DIR)/include -I$(BASE_DIR)/main -I$(BASE_DIR)/c++ -I$(BASE_DIR)/c++/snk -I$(BASE_DIR)/c++/src -I$(BASE_DIR)/c++/p_mod -I$(BASE_DIR)/fftw -I$(BASE_DIR)/vrgui -I$(CPLUS_INCLUDE_PATH) -I$(FFTW)/src
+
+QLIBS           = -L$(QTDIR)/lib -lqt -lm /usr/X11R6/lib/libX11.a /usr/X11R6/lib/libXext.a
+
+#LIBS = $(SPECTRA_BASE)/lib/libspectra.so $(SPECTRA_BASE)/lib/fftw/src/libfftw.a $(THREAD_LIBS) $(QLIBS)

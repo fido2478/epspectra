@@ -1,0 +1,20 @@
+%##########################################################
+%#  This module is to control INITIALIZE_SINK modules.
+%##########################################################
+
+module INITIALIZE_SINK:
+
+type StrlSampleRange;
+
+input name_module : string;
+
+procedure INITIAL_SINK()(string);
+
+%
+% body part
+%
+
+await name_module;
+call INITIAL_SINK()(?name_module);
+
+end module

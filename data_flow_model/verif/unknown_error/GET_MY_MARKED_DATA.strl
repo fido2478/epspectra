@@ -1,0 +1,24 @@
+%##########################################################
+%#  This module is to control GET_MY_MARKED_DATA modules.
+%##########################################################
+
+module GET_MY_MARKED_DATA:
+
+type StrlSampleRange;
+
+constant INITIAL_RANGE : StrlSampleRange;
+
+input name_module : string;
+
+
+output LOCAL_MYMARKED:StrlSampleRange;
+
+function GET_MYMARKEDDATA(string):StrlSampleRange;
+
+%
+% body part
+%
+
+emit LOCAL_MYMARKED(GET_MYMARKEDDATA(?name_module));
+
+end module

@@ -1,0 +1,46 @@
+module SINK:
+input Name;
+input S_Mark_from_Up;
+input S_Compute_from_Up;
+output Ack_to_Up,ComputedSRange;
+output sig_on;
+
+function CHECKSAMPLESIZE():integer;
+%
+%  body part
+%
+var CONT_FLAG:=false:boolean in
+
+signal My_Sample_Range,switch_on, switch_off,R_Name:string in
+   [
+      loop
+	 await S_Mark_from_Up;
+	 emit switch_on;
+	 trap compute_loop in
+	    loop
+	       emit My_Sample_Range;
+	       run FIT_RANGE_SNK;
+	       emit switch_off;
+	       if CONT_FLAG else
+		  await immediate S_Compute_from_Up
+	       end if;
+	       run COMP_DATA;
+	       await tick;
+	       if CHECKSAMPLESIZE()>=0 then
+		  CONT_FLAG:=true
+	       else
+		  CONT_FLAG:=false;
+		  exit compute_loop
+	       end if;
+	    end loop
+	 end trap;
+	 emit Ack_to_Up;
+      end loop
+   ||
+      run SWITCH[signal switch_on/On;
+		 signal switch_off/Off;
+		 signal sig_on/On_Signal];
+   ]
+end signal
+end var
+end module

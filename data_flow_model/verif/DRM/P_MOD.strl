@@ -1,0 +1,82 @@
+%################################
+%   P_MOD module 
+%################################
+module P_MOD:
+
+type StrlSampleRange;
+
+constant INITIAL_RANGE:StrlSampleRange;
+
+input Name:string;
+input S_Mark_from_Up;%{set timer on}%
+input Ack_From_Down;%{start to my mark method}%
+output E_Mark_to_Down;%{notify my mark finished to down}%
+input S_Compute_from_Up;%{trigger my compute method}%
+output E_Compute_to_Down;%{trigger compute method of downstream}%
+output Ack_to_Up;%{inform the upstream of finishing computing}%
+input snooping;
+output sig_on; %{trigger TIMER on the upstream}%
+output Ready2Receive;
+output ComputedSRange;
+
+function CHECKSAMPLESIZE(StrlSampleRange,StrlSampleRange):integer;
+function UPDATESAMPLE(StrlSampleRange):StrlSampleRange;
+%procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+%
+%  body part
+%
+var CONT_FLAG:=false:boolean,
+    org_input,
+    my_input:=INITIAL_RANGE:StrlSampleRange in
+
+signal My_Sample_Range:=INITIAL_RANGE:StrlSampleRange,
+       forecast_range:=INITIAL_RANGE:StrlSampleRange,
+       switch_on, switch_off,INI_PHASE:boolean in
+   [
+      emit INI_PHASE(true);
+      loop
+	 present INI_PHASE then
+	    await immediate S_Mark_from_Up;
+	    emit switch_on;
+	    emit My_Sample_Range
+	 else
+	    run WAIT_SIG1[signal S_Mark_from_Up/IN1;
+			 signal Ack_From_Down/IN2];
+	    emit switch_on;
+	    emit My_Sample_Range
+	 end present;
+
+	 trap compute_loop in
+	    loop
+	       if CONT_FLAG then
+		  await Ack_From_Down;
+		  emit My_Sample_Range(my_input);
+	       end if;
+	       run FIT_RANGE_MOD[signal E_Mark_to_Down/output_sample_range;
+			     signal forecast_range/input_sample_range];
+	       my_input:=?forecast_range;
+	       emit switch_off;
+	       emit Ready2Receive;
+	       await immediate S_Compute_from_Up;
+	       run COMP_DATA;
+% 	       call LOCALINCAWAITTICK()(?Name);%{perfgraph}%
+	       await tick;
+	       run TIMER;
+	       emit E_Compute_to_Down;
+	       if CHECKSAMPLESIZE(org_input,my_input)>=0 then
+		  my_input:=UPDATESAMPLE(my_input);
+		  CONT_FLAG:=true
+	       else
+		  CONT_FLAG:=false;
+		  exit compute_loop
+	       end if;
+	    end loop;
+	 end trap;
+	 emit Ack_to_Up;
+      end loop
+   ||
+      run SWITCH;
+   ]
+end signal
+end var
+end module

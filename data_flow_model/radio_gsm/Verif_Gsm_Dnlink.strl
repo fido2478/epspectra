@@ -1,0 +1,271 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission. 
+%
+
+
+%##########################################################
+%#  This module is downlink application with data flow model.
+%##########################################################
+
+module DNLINK:
+
+type StrlSampleRange;
+type UnsignedLL;
+type UnsignedLong;
+
+constant INITIAL_RANGE:StrlSampleRange;
+constant INITIAL_UNSIGNEDLL:UnsignedLL;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+constant RATE1 = 32000 : integer; %{160*50}%
+constant RATE2 = 6600 : integer; %{33*50}%
+constant RATE3 = 91200: integer; %{456*50}%
+constant RATE4 = 118400: integer; %{592*50}%
+constant RATE5 = 177600: integer; %{148*6*50}%
+
+input on_TimeConstraint:integer;
+input IP_Addr:string;
+input User_Quit;
+input InitRange:StrlSampleRange; %{0 1600}%
+inputoutput FileSource_module:string;
+inputoutput SpeechCoder_module:string;
+inputoutput ChannelCoder_module:string;
+inputoutput Interleaver_module:string;
+inputoutput Cipher_module:string;
+inputoutput Modulator_module:string;
+inputoutput UDPSink_module:string;
+output VIOLATED_DeadlockFreedom;
+output VIOLATED_Liveness;
+output VIOLATED_Correctness;
+%{
+output FileSource_COMPUTEDSR:StrlSampleRange;
+output SpeechCoder_COMPUTESR:StrlSampleRange;
+output ChannelCoder_COMPUTESR:StrlSampleRange;
+output Interleaver_COMPUTEDSR:StrlSampleRange;
+output Cipher_COMPUTESR:StrlSampleRange;
+output Modulator_COMPUTESR:StrlSampleRange;
+output UDPSink_COMPUTEDSR:StrlSampleRange;
+}%
+function GET_FILESOURCE(string,integer):string;
+function GET_SPEECHCODER():string;
+function GET_CHANNELCODER():string;
+function GET_INTERLEAVER():string;
+function GET_CIPHER():string;
+function GET_MODULATOR():string;
+function GET_UDPSINK(string,integer):string;
+
+procedure CONNECT_MODULES()(string,string,integer,integer);
+procedure INITIAL_SINK()(string);
+%
+% body part
+%
+signal Mark_src2spcoder:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_spcoder2chcoder:=INITIAL_RANGE:StrlSampleRange,
+       Mark_chcoder2inleaver:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_inleaver2cipher:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_cipher2mod:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_mod2snk:=INITIAL_RANGE:StrlSampleRange, 
+       Compute_src2spcoder, Compute_spcoder2chcoder, Compute_chcoder2inleaver,
+       Compute_inleaver2cipher, Compute_cipher2mod, Compute_mod2snk,
+       Ack_snk2mod:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_mod2cipher:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_cipher2inleaver:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_inleaver2chcoder:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_chcoder2spcoder:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_spcoder2src:=INITIAL_RANGE:StrlSampleRange, 
+       RDV_snk2mod, RDV_mod2cipher, RDV_cipher2inleaver, 
+       RDV_inleaver2chcoder, RDV_chcoder2spcoder, RDV_spcoder2src,
+       Speechcoder_Ready, Channelcoder_Ready,
+       Interleaver_Ready,Cipher_Ready,Modulator_Ready,Sink_Ready,
+       speechcoder_in:=INITIAL_RANGE:StrlSampleRange,
+       channelcoder_in:=INITIAL_RANGE:StrlSampleRange,
+       interleaver_in:=INITIAL_RANGE:StrlSampleRange,
+       cipher_in:=INITIAL_RANGE:StrlSampleRange,
+       modulator_in:=INITIAL_RANGE:StrlSampleRange in
+%%%%%%%%%%%%%%%%%%%%%
+% create modules
+%%%%%%%%%%%%%%%%%%%%%
+abort
+   await IP_Addr;
+   emit FileSource_module(GET_FILESOURCE("papin2.au",0));
+   emit SpeechCoder_module(GET_SPEECHCODER());
+   emit ChannelCoder_module(GET_CHANNELCODER());
+   emit Interleaver_module(GET_INTERLEAVER());
+   emit Cipher_module(GET_CIPHER());
+   emit Modulator_module(GET_MODULATOR());
+   emit UDPSink_module(GET_UDPSINK(?IP_Addr,5001));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make topology
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  call CONNECT_MODULES()(?UDPSink_module,?Modulator_module,RATE5,8);
+  call CONNECT_MODULES()(?Modulator_module,?Cipher_module,RATE4,8);
+  call CONNECT_MODULES()(?Cipher_module,?Interleaver_module,RATE4,8);
+  call CONNECT_MODULES()(?Interleaver_module,?ChannelCoder_module,RATE3,8);
+  call CONNECT_MODULES()(?ChannelCoder_module,?SpeechCoder_module,RATE2,8);
+  call CONNECT_MODULES()(?SpeechCoder_module,?FileSource_module,RATE1,8);
+
+  call INITIAL_SINK()(?UDPSink_module);
+  await InitRange;
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% initialize parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  [
+     emit Ack_spcoder2src(?InitRange);
+   ||
+     run FileSource/
+    SOURCE[signal FileSource_module/Name;
+	   signal Mark_src2spcoder/E_Mark_to_Down;%{mark1}%
+	   signal Compute_src2spcoder/E_Compute_to_Down;
+	   signal Ack_spcoder2src/Ack_From_Down;
+	   signal RDV_spcoder2src/snooping%{;
+	   signal FileSource_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run SpeechCoder/
+    P_MOD[signal SpeechCoder_module/Name;
+	  signal Mark_src2spcoder/S_Mark_from_Up;%{mark1}%
+	  signal Compute_src2spcoder/S_Compute_from_Up;%{}%
+	  signal Ack_spcoder2src/Ack_to_Up;%{}%
+	  signal RDV_spcoder2src/sig_on;%{}%
+	  signal Speechcoder_Ready/Ready2Receive;
+	  signal Mark_spcoder2chcoder/E_Mark_to_Down;%{mark2}%
+	  signal Compute_spcoder2chcoder/E_Compute_to_Down;%{wire2}%
+	  signal Ack_chcoder2spcoder/Ack_From_Down;%{wire3}%
+	  signal RDV_chcoder2spcoder/snooping%{;
+	  signal SpeechCoder_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run ChannelCoder/
+    P_MOD[signal ChannelCoder_module/Name;
+	  signal Mark_spcoder2chcoder/S_Mark_from_Up;%{mark2}%
+	  signal Compute_spcoder2chcoder/S_Compute_from_Up;%{wire2}%
+	  signal Ack_chcoder2spcoder/Ack_to_Up;%{wire3}%
+	  signal RDV_chcoder2spcoder/sig_on;%{wire4}%
+	  signal Channelcoder_Ready/Ready2Receive;
+	  signal Mark_chcoder2inleaver/E_Mark_to_Down;%{snk1}%
+	  signal Compute_chcoder2inleaver/E_Compute_to_Down;%{}%
+	  signal Ack_inleaver2chcoder/Ack_From_Down;%{from sink1}%
+	  signal RDV_inleaver2chcoder/snooping%{;
+	  signal ChannelCoder_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run Interleaver/
+    P_MOD[signal Interleaver_module/Name;
+	  signal Mark_chcoder2inleaver/S_Mark_from_Up;%{mark2}%
+	  signal Compute_chcoder2inleaver/S_Compute_from_Up;%{wire2}%
+	  signal Ack_inleaver2chcoder/Ack_to_Up;%{wire3}%
+	  signal RDV_inleaver2chcoder/sig_on;%{wire4}%
+	  signal Interleaver_Ready/Ready2Receive;
+	  signal Mark_inleaver2cipher/E_Mark_to_Down;%{snk1}%
+	  signal Compute_inleaver2cipher/E_Compute_to_Down;%{}%
+	  signal Ack_cipher2inleaver/Ack_From_Down;%{from sink1}%
+	  signal RDV_cipher2inleaver/snooping%{;
+	  signal Interleaver_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run Cipher/
+    P_MOD[signal Cipher_module/Name;
+	  signal Mark_inleaver2cipher/S_Mark_from_Up;%{mark2}%
+	  signal Compute_inleaver2cipher/S_Compute_from_Up;%{wire2}%
+	  signal Ack_cipher2inleaver/Ack_to_Up;%{wire3}%
+	  signal RDV_cipher2inleaver/sig_on;%{wire4}%
+	  signal Cipher_Ready/Ready2Receive;
+	  signal Mark_cipher2mod/E_Mark_to_Down;%{snk1}%
+	  signal Compute_cipher2mod/E_Compute_to_Down;%{}%
+	  signal Ack_mod2cipher/Ack_From_Down;%{from sink1}%
+	  signal RDV_mod2cipher/snooping%{;
+	  signal Cipher_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run Modulator/
+    P_MOD[signal Modulator_module/Name;
+	  signal Mark_cipher2mod/S_Mark_from_Up;%{mark2}%
+	  signal Compute_cipher2mod/S_Compute_from_Up;%{wire2}%
+	  signal Ack_mod2cipher/Ack_to_Up;%{wire3}%
+	  signal RDV_mod2cipher/sig_on;%{wire4}%
+	  signal Modulator_Ready/Ready2Receive;
+	  signal Mark_mod2snk/E_Mark_to_Down;%{snk1}%
+	  signal Compute_mod2snk/E_Compute_to_Down;%{}%
+	  signal Ack_snk2mod/Ack_From_Down;%{from sink1}%
+	  signal RDV_snk2mod/snooping%{;
+	  signal Modulator_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run UDPSink/
+    SINK[signal UDPSink_module/Name;
+	 signal Mark_mod2snk/S_Mark_from_Up;%{snk2}%
+	 signal Compute_mod2snk/S_Compute_from_Up;
+	 signal Ack_snk2mod/Ack_to_Up;
+	 signal RDV_snk2mod/sig_on;
+	 signal Sink_Ready/Ready2Receive%{;
+	 signal UDPSink_COMPUTEDSR/ComputedSRange}%];
+   ||
+%{checking safetyness property}%
+      run safety1/
+    DEADLOCK_FREE[signal Speechcoder_Ready/Iy, Compute_src2spcoder/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety2/
+    DEADLOCK_FREE[signal Channelcoder_Ready/Iy,Compute_spcoder2chcoder/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety3/
+    DEADLOCK_FREE[signal Interleaver_Ready/Iy,Compute_chcoder2inleaver/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety4/
+    DEADLOCK_FREE[signal Cipher_Ready/Iy,Compute_inleaver2cipher/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety5/
+    DEADLOCK_FREE[signal Modulator_Ready/Iy,Compute_cipher2mod/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety6/
+    DEADLOCK_FREE[signal Sink_Ready/Iy,Compute_mod2snk/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+%{checking correctness property}%
+     run correctness/
+    CHECK_OUTPUT[signal Ack_spcoder2src/Ix,Ack_snk2mod/Iy,
+                VIOLATED_Correctness/VIOLATED_s]
+   ||
+%{checking liveness property}%
+     run CONVERTOR1[signal Mark_src2spcoder/IN1,Ack_chcoder2spcoder/IN2,speechcoder_in/OUT]
+   ||
+     run liveness_speechcoder/
+    B_LIVENESS[signal speechcoder_in/Ix,Ack_spcoder2src/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_spcoder2chcoder/IN1,Ack_inleaver2chcoder/IN2,channelcoder_in/OUT]
+   ||
+     run liveness_channelcoder/
+    B_LIVENESS[signal channelcoder_in/Ix,Ack_chcoder2spcoder/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_chcoder2inleaver/IN1,Ack_cipher2inleaver/IN2,interleaver_in/OUT]
+   ||
+     run liveness_interleaver/
+    B_LIVENESS[signal interleaver_in/Ix,Ack_inleaver2chcoder/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_inleaver2cipher/IN1,Ack_mod2cipher/IN2,cipher_in/OUT]
+   ||
+     run liveness_cipher/
+    B_LIVENESS[signal cipher_in/Ix, Ack_cipher2inleaver/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_cipher2mod/IN1,Ack_snk2mod/IN2,modulator_in/OUT]
+   ||
+     run liveness_modulator/
+    B_LIVENESS[signal modulator_in/Ix, Ack_mod2cipher/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ]
+when User_Quit
+end signal
+end module

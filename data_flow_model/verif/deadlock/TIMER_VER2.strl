@@ -1,0 +1,19 @@
+%##########################################################
+%#  This module is to consume time.
+%#  When the time to send a signal that compute done on up-source
+%#  is earlier that that to wait for it to start compute on down-mod,
+%#  deadlock happens. 
+%##########################################################
+
+module TIMER:
+
+input set_on;
+
+trap main_loop in
+   loop
+      suspend
+	 exit main_loop
+      when immediate set_on;
+   end loop
+end trap;
+end module

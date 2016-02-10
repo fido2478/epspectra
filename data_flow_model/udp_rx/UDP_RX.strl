@@ -1,0 +1,179 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission. 
+%
+
+
+%##########################################################
+%#  This module is UDP_RX application with data flow model.
+%##########################################################
+
+module UDP_RX:
+
+type StrlSampleRange;
+type Debug4Var;%{for debug}%
+
+constant INITIAL_RANGE:StrlSampleRange;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+constant OUT_RATE = 400000 : integer;
+constant IN_RATE = 2000 : integer;
+constant CENTER_FREQ_MULT = 4 : integer;
+constant DEF_TPD = 2600.0f : float;
+constant DEC = 200 : integer;
+
+input User_Quit;
+inputoutput Source_module:string;
+inputoutput Noise_module:string;
+inputoutput Filter_module:string;
+inputoutput Sink_module:string;
+
+output SOURCE_SRANGE:StrlSampleRange;
+output NOISE_SRANGE:StrlSampleRange;
+output FILTER_SRANGE:StrlSampleRange;
+output SINK_SRANGE:StrlSampleRange;
+
+output SOURCE_COMPUTEDSR:StrlSampleRange;
+output NOISE_COMPUTEDSR:StrlSampleRange;
+output FILTER_COMPUTEDSR:StrlSampleRange;
+output SINK_COMPUTEDSR:StrlSampleRange;
+
+output debug_source:Debug4Var;%{for debug}%
+output debug_noise:Debug4Var;%{for debug}%
+output debug_filter:Debug4Var;%{for debug}%
+output debug_sink:Debug4Var;%{for debug}%
+
+output DUMMY:float;
+
+function GET_UDPSOURCE(integer):string;
+function GET_FILTER(integer,integer,float,float):string;
+function GET_NOISE():string;
+function GET_CXPLOTSINK():string;
+procedure CONNECT_MODULES()(string,string,integer,integer);
+function GET_SYMPERIODofFILTER():float;
+procedure SET_SYMPERIOD()(float);
+procedure SET_SYMTIMING()(float);
+%
+% body part
+%
+
+var nameofsource:string,nameoffilter:string,
+    nameofnoise:string,nameofsink:string in
+
+signal Trigger,
+       Mark_Wire_S_M:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_Wire_M_M1:=INITIAL_RANGE:StrlSampleRange,
+       Mark_Wire_M_S1:=INITIAL_RANGE:StrlSampleRange, 
+       Compute_Wire_S_M, Compute_Wire_M_M1, 
+       Compute_Wire_M_S1,
+       Ack_Wire_S_M:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Wire_M_M1:=INITIAL_RANGE:StrlSampleRange,
+       Ack_Wire_M_S1:=INITIAL_RANGE:StrlSampleRange,
+       Clock_Wire_S_M, Clock_Wire_M_M1,
+       Clock_Wire_M_S1 in
+
+abort
+
+%%%%%%%%%%%%%%%%%%%%%
+% create modules
+%%%%%%%%%%%%%%%%%%%%%
+
+   nameofsource:=GET_UDPSOURCE(5001);
+   nameoffilter:=GET_FILTER(OUT_RATE/IN_RATE,50,8000.0f-0.0f,1.0f/800.0f);
+   nameofnoise:=GET_NOISE();
+   nameofsink:=GET_CXPLOTSINK();
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make topology
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   call CONNECT_MODULES()(nameofsink,nameoffilter,IN_RATE,64);
+   call CONNECT_MODULES()(nameoffilter,nameofnoise,OUT_RATE,8);
+   call CONNECT_MODULES()(nameofnoise,nameofsource,OUT_RATE,8);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% initialize parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+   emit Source_module(nameofsource);
+   emit Filter_module(nameoffilter);
+   emit Noise_module(nameofnoise);
+   emit Sink_module(nameofsink);
+
+   run INITIALIZE_SINK[signal Sink_module/name_module];
+
+   emit DUMMY(GET_SYMPERIODofFILTER());
+
+%{   call SET_SYMPERIOD()(0.005f);}%
+%{   call SET_SYMTIMING()(0.88f);}%
+   
+   [
+      emit Ack_Wire_S_M(INITIAL_RANGE);
+    ||
+      run source1/
+     SOURCE[signal Source_module/Name;
+	   signal Mark_Wire_S_M/E_Mark_to_Down;%{mark1}%
+	   signal Compute_Wire_S_M/E_Compute_to_Down;
+	   signal Ack_Wire_S_M/Ack_From_Down;
+	   signal Clock_Wire_S_M/snooping;
+	   signal SOURCE_COMPUTEDSR/ComputedSRange;
+	   signal debug_source/temp%{for debug}%];
+    ||
+      run module1/
+     P_MOD[signal Noise_module/Name;
+	  signal Mark_Wire_S_M/S_Mark_from_Up;%{mark1}%
+	  signal Compute_Wire_S_M/S_Compute_from_Up;%{}%
+	  signal Ack_Wire_S_M/Ack_to_Up;%{}%
+	  signal Clock_Wire_S_M/sig_on;%{}%
+	  signal Mark_Wire_M_M1/E_Mark_to_Down;%{mark2}%
+	  signal Compute_Wire_M_M1/E_Compute_to_Down;%{wire2}%
+	  signal Ack_Wire_M_M1/Ack_From_Down;%{wire3}%
+	  signal Clock_Wire_M_M1/snooping;%{wire4}%
+	  signal NOISE_COMPUTEDSR/ComputedSRange;
+	  signal debug_noise/temp%{for debug}%];
+    ||
+      run module2/
+     P_MOD[signal Filter_module/Name;
+	  signal Mark_Wire_M_M1/S_Mark_from_Up;%{mark1}%
+	  signal Compute_Wire_M_M1/S_Compute_from_Up;%{}%
+	  signal Ack_Wire_M_M1/Ack_to_Up;%{}%
+	  signal Clock_Wire_M_M1/sig_on;%{}%
+	  signal Mark_Wire_M_S1/E_Mark_to_Down;%{mark2}%
+	  signal Compute_Wire_M_S1/E_Compute_to_Down;%{wire2}%
+	  signal Ack_Wire_M_S1/Ack_From_Down;%{wire3}%
+	  signal Clock_Wire_M_S1/snooping;%{wire4}%
+	  signal FILTER_COMPUTEDSR/ComputedSRange;
+	  signal debug_filter/temp%{for debug}%];
+    ||
+      run sink1/
+     SINK[signal Sink_module/Name;
+	  signal Mark_Wire_M_S1/S_Mark_from_Up;%{snk1}%
+	  signal Compute_Wire_M_S1/S_Compute_from_Up;
+	  signal Ack_Wire_M_S1/Ack_to_Up;
+	  signal Clock_Wire_M_S1/sig_on;
+	  signal SINK_COMPUTEDSR/ComputedSRange;
+	  signal debug_sink/temp%{for debug}%];
+    ||
+      run MONITOR[signal Mark_Wire_S_M/for_m1;
+		     signal SOURCE_SRANGE/SR_for_m1;
+		     signal Mark_Wire_M_M1/for_m2;
+		     signal NOISE_SRANGE/SR_for_m2;
+		     signal Mark_Wire_M_S1/for_m3;
+		     signal FILTER_SRANGE/SR_for_m3;
+		     signal Ack_Wire_M_S1/for_m4;
+		     signal SINK_SRANGE/SR_for_m4];
+    ]
+
+when User_Quit
+end signal
+end var
+end module

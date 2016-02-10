@@ -1,0 +1,37 @@
+%##########################################################
+%#  This module is MONITOR with data flow model.
+%##########################################################
+
+module MONITOR:
+
+type StrlSampleRange;
+
+input for_m1:StrlSampleRange;
+input for_m2:StrlSampleRange;
+input for_m3:StrlSampleRange;
+input for_m4:StrlSampleRange;
+output SR_for_m1:StrlSampleRange;
+output SR_for_m2:StrlSampleRange;
+output SR_for_m3:StrlSampleRange;
+output SR_for_m4:StrlSampleRange;
+
+loop
+   present for_m1 then
+   emit SR_for_m1(?for_m1)
+   end present;
+||
+   present for_m2 then
+   emit SR_for_m2(?for_m2)
+   end present;
+||
+   present for_m3 then
+   emit SR_for_m3(?for_m3)
+   end present;
+||
+   present for_m4 then
+   emit SR_for_m4(?for_m4)
+   end present;
+||
+   await tick;
+end loop
+end module

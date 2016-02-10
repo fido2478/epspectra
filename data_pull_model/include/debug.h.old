@@ -1,0 +1,10 @@
+/************************************
+ * debug.h
+ ************************************/
+
+#ifndef _DEBUG_H
+#define _DEBUG_H
+
+char *MYPRINT(char *);
+
+#endif

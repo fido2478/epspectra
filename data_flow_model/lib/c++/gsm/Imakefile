@@ -1,0 +1,81 @@
+XCOMM $Id: Imakefile,v 1.4 1996/05/01 23:17:21 wstasior Exp $
+
+#ifndef SharedGSMRev
+#define SharedGSMRev 1.0
+#endif
+
+#ifndef NormalLibGSM
+#define NormalLibGSM YES
+#endif
+
+#ifndef SharedLibGSM
+#define SharedLibGSM HasSharedLibraries
+#endif
+
+#ifndef DebugLibGSM
+#define DebugLibGSM NO
+#endif
+
+#ifndef ProfileLibGSM
+#define ProfileLibGSM NO
+#endif
+
+#if SharedLibGSM
+SOREV = SharedGSMRev
+#endif
+
+EXTRA_DEFINES = -DSASR -DUSE_FLOAT_MUL -DFAST
+
+#define DoNormalLib NormalLibGSM
+#define DoSharedLib SharedLibGSM
+#define DoDebugLib DebugLibGSM
+#define DoProfileLib ProfileLibGSM
+#include <Library.tmpl>
+
+HEADERS = config.h private.h toast.h gsm.h proto.h unproto.h
+
+SRCS = add.c code.c debug.c decode.c gsm_create.c gsm_decode.c gsm_destroy.c \
+	gsm_encode.c gsm_explode.c gsm_implode.c gsm_option.c gsm_print.c \
+	long_term.c lpc.c preprocess.c rpe.c short_term.c table.c toast.c \
+	toast_alaw.c toast_audio.c toast_lin.c toast_ulaw.c
+
+OBJS = add.o code.o debug.o decode.o gsm_create.o gsm_decode.o gsm_destroy.o \
+	gsm_encode.o gsm_explode.o gsm_implode.o gsm_option.o gsm_print.o \
+	long_term.o lpc.o preprocess.o rpe.o short_term.o table.o toast.o \
+	toast_alaw.o toast_audio.o toast_lin.o toast_ulaw.o
+
+REQLIBS = ExtraLibs
+
+LibraryObjectRule()
+
+#if DoSharedLib
+#if DoNormalLib
+SharedLibraryTarget(gsm,$(SOREV),$(OBJS),shared,..)
+#else
+SharedLibraryTarget(gsm,$(SOREV),$(OBJS),.,.)
+#endif
+InstallSharedLibrary(gsm,$(SOREV),$(USRLIBDIR))
+#endif
+#if DoNormalLib
+NormalLibraryTarget(gsm,$(OBJS))
+InstallLibrary(gsm,$(USRLIBDIR))
+#endif
+#if DoProfileLib
+ProfiledLibraryTarget(gsm,$(OBJS))
+InstallLibrary(gsm_p,$(USRLIBDIR))
+#endif
+#if DoDebugLib
+DebuggedLibraryTarget(gsm,$(OBJS))
+InstallLibrary(gsm_d,$(USRLIBDIR))
+#endif
+
+LintLibraryTarget(gsm,$(SRCS))
+InstallLintLibrary(gsm,$(LINTLIBDIR))
+
+BuildIncludes($(HEADERS),gsm,..)
+
+InstallMultipleFlags($(HEADERS),$(INCDIR),$(INSTINCFLAGS))
+
+DependTarget()
+
+NormalLintTarget($(SRCS))

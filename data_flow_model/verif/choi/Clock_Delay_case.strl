@@ -1,0 +1,13 @@
+module tis2:
+output o1,o2;
+
+loop  
+  emit o1;
+  await o2
+each tick
+||
+loop 
+  emit o2;
+  await o1
+each tick
+end module

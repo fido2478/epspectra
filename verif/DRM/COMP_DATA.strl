@@ -1,0 +1,8 @@
+module COMP_DATA:
+
+output ComputedSRange;
+%
+% body part
+%
+   emit ComputedSRange;
+end module

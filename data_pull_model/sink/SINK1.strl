@@ -1,0 +1,39 @@
+%
+%   SINK module 
+%
+
+module SINK:
+
+type StrlSampleSize;
+type StrlSampleIndex;
+type StrlSampleRange;
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_SIZE : StrlSampleSize;
+constant INITIAL_RANGE : StrlSampleRange;
+
+input get_MARKDATA;
+input input_compute:integer;%{compute}%
+output output_compute:integer;%{compute}%
+input name:string;
+inputoutput S_RANGE:StrlSampleRange;
+input RET_From_UPstream:integer; %{return type from upstream }%
+output My_return_value:integer;
+output sig_for_upstream; %{signal to be passed to upstream }%
+output Srange_for_upstream:StrlSampleRange; %{sample range value to be passed to upstream }%
+output MyMarkedData:StrlSampleRange;
+%
+%  body part
+%
+signal My_Sample_Range:=INITIAL_RANGE:StrlSampleRange in
+   loop
+      await immediate get_MARKDATA;
+      emit My_Sample_Range(?S_RANGE);
+      run MARK_DATA[signal RET_From_UPstream/retVal_from_upstream;
+		    signal sig_for_upstream/call_upstream;
+		    signal Srange_for_upstream/forecastrange];
+      await immediate input_compute;
+      run COMPUTE_DATA
+   end loop
+end signal
+end module

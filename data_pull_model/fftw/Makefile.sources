@@ -1,0 +1,24 @@
+# Makefile to generate the sources using the ML program
+# genfft.ml
+
+INDENT = indent  # if you don't have indent: INDENT = cat
+CAMLC  = camlc   # Caml compiler
+GENFFT = ./genfft
+COPYRIGHT = ../COPYRIGHT
+PRELUDE = ./prelude
+
+$(NOTW_PREFIX)%.c:  $(GENFFT) $(COPYRIGHT) $(PRELUDE)
+	(cat $(COPYRIGHT) $(PRELUDE); $(GENFFT) -notwiddle $*) | $(INDENT) >$@
+
+$(NOTWI_PREFIX)%.c:  $(GENFFT) $(COPYRIGHT) $(PRELUDE)
+	(cat $(COPYRIGHT) $(PRELUDE); $(GENFFT) -notwiddleinv $*) | $(INDENT) >$@
+
+$(TWID_PREFIX)%.c:  $(GENFFT) $(COPYRIGHT) $(PRELUDE)
+	(cat $(COPYRIGHT) $(PRELUDE); $(GENFFT) -twiddle $*) | $(INDENT) >$@
+
+$(TWIDI_PREFIX)%.c:  $(GENFFT) $(COPYRIGHT) $(PRELUDE)
+	(cat $(COPYRIGHT) $(PRELUDE); $(GENFFT) -twiddleinv $*) | $(INDENT) >$@
+
+$(GENFFT):	genfft.ml
+	@echo "Expect two warnings from the following command:"
+	$(CAMLC) genfft.ml -o $(GENFFT)

@@ -1,0 +1,15 @@
+%##########################################################
+%#  This module is to get name of module.
+%##########################################################
+
+module GETNAME:
+
+input wait_name:string;
+output return_name:string;
+
+var name:="name":string in
+await wait_name;
+name:=?wait_name;
+emit return_name(name)
+end var
+end module

@@ -1,0 +1,35 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission. 
+%
+
+
+module DEADLOCK_FREE:
+
+input Ix,Iy;
+output VIOLATED_s;
+
+loop
+   trap scope in
+      signal OK in
+	 [
+	    await Ix;
+	    abort
+	       await tick;
+	       emit VIOLATED_s
+	    when immediate OK;
+	    exit scope
+	 ] ||
+	 every Iy do
+	    sustain OK
+	 end every
+      end signal
+   end trap
+end loop
+end module

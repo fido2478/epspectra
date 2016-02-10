@@ -1,0 +1,48 @@
+ifneq (,)
+This makefile requires GNU Make.
+endif
+
+BASE_DIR = $(SPECTRA_BASE)
+
+#GPROF = -pg
+DBUG = -g
+G++ = g++ $(GPROF) $(DBUG)
+CC = $(G++)
+AS = $(SPECTRA_BASE)/lib/nasm/nasm
+RM = rm -f
+QTDIR = $(SPECTRADIR)/lib/qt
+
+INC = $(INC_SYSTEM) -I. -I$(BASE_DIR)/../c++ -I$(BASE_DIR)/../c++/snk -I$(BASE_DIR)/../c++/src -I$(BASE_DIR)/../c++/p_mod 
+LIBSO= $(BASE_DIR)/i386/lib/libspectra.so
+
+ifeq ($(HOSTTYPE),i386)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i486)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i586)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i686)
+  MMX = yes
+endif
+
+DEFINES = $(SPECTRA_DEFINES) -D_GUI_DEFINE -DPERFMON -DCACHESIZE=262144 -D_PERF
+#-DTHREADS
+#-DCACHESIZE=32768
+#-DCACHESIZE=262144
+#-DCACHESIZE=524288
+#-DCACHESIZE=10485760
+
+
+ifdef MMX
+  ### Comment out this line to disable MMX
+  DEFINES := $(DEFINES) -DENABLE_MMX
+endif
+
+QLIBS           = -L$(SPECTRA_BASE)/i386/lib/qt/lib -lqt -lm /usr/X11R6/lib/libX11.a /usr/X11R6/lib/libXext.a
+
+LIBS = $(SPECTRA_BASE)/i386/lib/libspectra.so $(SPECTRA_BASE)/i386/lib/fftw/src/libfftw.a $(QLIBS)
+
+CFLAGS = -Wall  $(DEFINES) 

@@ -1,0 +1,18 @@
+%##########################################################
+%#  This module is to switch on and off.
+%##########################################################
+
+
+module SWITCH:
+
+input switch_on;
+input switch_off;
+output sig_on;
+
+loop
+   await immediate switch_on;
+   abort
+      sustain sig_on
+   when switch_off
+end loop
+end module

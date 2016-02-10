@@ -1,0 +1,90 @@
+%##########################################################
+%#  This module is UDP_TX application with data flow model.
+%##########################################################
+
+module UDP_FLOW:
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+input User_Quit;
+
+
+%
+% body part
+%
+
+signal Trigger,
+       Mark_Wire_S_M, 
+       Mark_Wire_M_M1,
+       Mark_Wire_M_M2,
+       Mark_Wire_M_S1, 
+       Mark_Wire_M_S2,
+       Compute_Wire_S_M, Compute_Wire_M_M1, 
+       Compute_Wire_M_S1, Compute_Wire_M_S2,
+       Ack_Wire_S_M, 
+       Ack_Wire_M_M1,
+       Ack_Wire_M_M2, 
+       Ack_Wire_M_S1,
+       Ack_Wire_M_S2,
+       Clock_Wire_S_M, Clock_Wire_M_M1,
+       Clock_Wire_M_S1, Clock_Wire_M_S2 in
+
+abort
+  [
+     emit Ack_Wire_S_M;
+   ||
+     run source1/
+    SOURCE[signal Mark_Wire_S_M/E_Mark_to_Down;
+	   signal Compute_Wire_S_M/E_Compute_to_Down;
+	   signal Ack_Wire_S_M/Ack_From_Down;
+	   signal Clock_Wire_S_M/snooping];
+   ||
+      run module1/
+    P_MOD[signal Mark_Wire_S_M/S_Mark_from_Up;%{}%
+	  signal Compute_Wire_S_M/S_Compute_from_Up;%{}%
+	  signal Ack_Wire_S_M/Ack_to_Up;%{}%
+	  signal Clock_Wire_S_M/sig_on;%{}%
+	  signal Mark_Wire_M_M1/E_Mark_to_Down;%{wire1}%
+	  signal Compute_Wire_M_M1/E_Compute_to_Down;%{wire2}%
+	  signal Ack_Wire_M_M1/Ack_From_Down;%{wire3}%
+	  signal Clock_Wire_M_M1/snooping];%{wire4}%
+   ||
+      run module2/
+    P_MOD1to2[signal Mark_Wire_M_M1/S_Mark_from_Up;%{wire1}%
+	  signal Compute_Wire_M_M1/S_Compute_from_Up;%{wire2}%
+	  signal Ack_Wire_M_M1/Ack_to_Up;%{wire3}%
+	  signal Clock_Wire_M_M1/sig_on;%{wire4}%
+	  signal Mark_Wire_M_S1/E_Mark_to_Down;%{to snk1}%
+	  signal Compute_Wire_M_S1/E_Compute_to_Down;%{}%
+	  signal Ack_Wire_M_S1/Ack_From_Down1;%{from sink1}%
+	  signal Ack_Wire_M_M2/Ack_From_Down2;%{from mod3}%
+	  signal Clock_Wire_M_S1/snooping];%{}%
+   ||
+      run sink1/
+    SCOPESINK[signal Mark_Wire_M_S1/S_Mark_from_Up;
+	 signal Compute_Wire_M_S1/S_Compute_from_Up;
+	 signal Ack_Wire_M_S1/Ack_to_Up;
+	 signal Clock_Wire_M_S1/sig_on];
+   ||
+      run module3/
+    P_MOD1[signal Mark_Wire_M_S1/S_Mark_from_Up;%{from mod2}%
+	  signal Compute_Wire_M_S1/S_Compute_from_Up;%{from mod2}%
+	  signal Ack_Wire_M_M2/Ack_to_Up;%{to mod2}%
+	  signal Clock_Wire_M_S1/sig_on;%{to mod2}%
+	  signal Mark_Wire_M_S2/E_Mark_to_Down;%{to snk2}%
+	  signal Compute_Wire_M_S2/E_Compute_to_Down;%{to snk2}%
+	  signal Ack_Wire_M_S2/Ack_From_Down;%{from snk2}%
+	  signal Clock_Wire_M_S2/snooping];%{from snk2}%
+   ||
+      run sink2/
+    SINK[signal Mark_Wire_M_S2/S_Mark_from_Up;
+	 signal Compute_Wire_M_S2/S_Compute_from_Up;
+	 signal Ack_Wire_M_S2/Ack_to_Up;
+	 signal Clock_Wire_M_S2/sig_on];
+   ]
+when User_Quit
+end signal
+end module

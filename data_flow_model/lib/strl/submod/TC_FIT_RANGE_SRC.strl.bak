@@ -1,0 +1,88 @@
+%##########################################################
+%#  This module is to control Mark_Data modules.
+%##########################################################
+
+module FIT_RANGE_SRC:
+
+type StrlSampleRange;
+type StrlSampleIndex;
+type UnsignedLL;
+type UnsignedInt;
+type Debug4Var;%{for debug}%
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_RANGE : StrlSampleRange;
+constant INITIAL_UNSIGNEDINT : UnsignedInt;
+constant INITIAL_DEBUG4VAR : Debug4Var;%{for debug}%
+
+sensor MD_Signal:UnsignedLL;%{for tc}%
+input Name : string;
+input sample_range : StrlSampleRange;
+output output_sample_range : StrlSampleRange;
+output debug_temp:Debug4Var;%{for debug}%
+
+function GETMARKEDWP(string):StrlSampleIndex;
+function ADD_INDEX_SIZE(StrlSampleRange):StrlSampleIndex;
+function SUBTRACT_A_B(StrlSampleIndex,StrlSampleIndex):integer;
+function GETMAXOUTSIZE(string):integer;
+function GET_OUTPUTSIZE(string):UnsignedInt;
+function ROUNDOWN_SIZE(integer,UnsignedInt):integer;
+function SET_SAMPLERANGE(StrlSampleIndex,integer):StrlSampleRange;
+function REAL_FIT_RANGE(StrlSampleIndex,integer,StrlSampleRange,string):integer;
+function GETINDEX(StrlSampleRange):StrlSampleIndex;
+function error_exit(integer):integer;
+procedure SKIPPING_DATA()(integer);
+function DEBUG_RANGE(string,StrlSampleRange):Debug4Var;%{for debug}%
+procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+%
+% body part
+%
+
+var input_range:=INITIAL_RANGE:StrlSampleRange,
+    output_range:=INITIAL_RANGE:StrlSampleRange,
+    pendingWP:=INITIAL_INDEX:StrlSampleIndex,
+    evaluatedWP:=INITIAL_INDEX:StrlSampleIndex,
+    desiredWP:=INITIAL_INDEX:StrlSampleIndex,
+    requestSize:=0:integer,sameindex:=0:integer,
+    maxOutSize:=0:integer,
+    temp_int:=0:integer,
+    temp_unsigned:=INITIAL_UNSIGNEDINT:UnsignedInt in
+   
+   await immediate sample_range;
+   input_range:=?sample_range;
+
+%{   emit debug_temp(DEBUG_RANGE("input(sor)",input_range));for debug}%
+%{   await tick;for debug}%
+
+   pendingWP:=GETMARKEDWP(?Name);%{my marked point}%
+   evaluatedWP:=GETINDEX(input_range);%{index of assessed SampleRange}%
+   desiredWP:=ADD_INDEX_SIZE(input_range);
+   sameindex:=SUBTRACT_A_B(evaluatedWP,pendingWP);%{evaluate datasize}%
+%{   call LOCALINCAWAITTICK()(?Name);}%%{perfgraph}%
+%{   await tick;}%
+   if sameindex<0 then
+      temp_int:=error_exit(1)
+   elsif sameindex>0 then
+      call SKIPPING_DATA()(sameindex);
+      requestSize:=SUBTRACT_A_B(desiredWP,evaluatedWP);
+      pendingWP:=evaluatedWP
+   else
+      requestSize:=SUBTRACT_A_B(desiredWP,pendingWP);
+   end if;
+   maxOutSize:=200;
+   if requestSize>maxOutSize then
+      requestSize:=maxOutSize
+   end if;
+   temp_unsigned:=GET_OUTPUTSIZE(?Name);%{get output unit}%
+   requestSize:=ROUNDOWN_SIZE (requestSize,temp_unsigned);
+   output_range:=SET_SAMPLERANGE(pendingWP,requestSize);%{set my SampleRange}%
+
+%{   emit debug_temp(DEBUG_RANGE("output(sor)",output_range));}%%{for debug}%
+%{   await tick;}%%{for debug}%
+
+   temp_int:=REAL_FIT_RANGE(pendingWP,requestSize,INITIAL_RANGE,?Name);
+   call LOCALINCAWAITTICK()(?Name);%{perfgraph}%
+   await tick;
+   emit output_sample_range(output_range);
+end var
+end module

@@ -1,0 +1,208 @@
+.model SOURCE
+.inputs Name Ack_From_Down snooping MD_Signal TEST_41_0_1_0_0_IN \
+TEST_45_0_1_0_0_IN TEST_59_0_2_0_0_IN TEST_60_0_2_0_0_IN TEST_61_0_2_0_0_IN \
+TEST_64_0_2_0_0_IN TEST_66_0_2_0_0_IN
+.outputs E_Mark_to_Down E_Compute_to_Down ComputedSRange temp \
+TEST_41_0_1_0_0_OUT TEST_45_0_1_0_0_OUT TEST_59_0_2_0_0_OUT \
+TEST_60_0_2_0_0_OUT TEST_61_0_2_0_0_OUT TEST_64_0_2_0_0_OUT \
+TEST_66_0_2_0_0_OUT ACT_2_0_0_0_0 ACT_5_0_0_0_0 ACT_7_0_0_0_0 ACT_12_0_0_0_0 \
+ACT_14_0_0_0_0 ACT_17_0_0_0_0 ACT_18_0_0_0_0 ACT_19_0_0_0_0 ACT_20_0_0_0_0 \
+ACT_21_0_0_0_0 ACT_22_0_0_0_0 ACT_23_0_0_0_0 ACT_24_0_0_0_0 ACT_25_0_0_0_0 \
+ACT_26_0_0_0_0 ACT_27_0_0_0_0 ACT_28_0_0_0_0 ACT_29_0_1_0_0 ACT_30_0_1_0_0 \
+ACT_31_0_1_0_0 ACT_32_0_1_0_0 ACT_33_0_1_0_0 ACT_34_0_1_0_0 ACT_35_0_1_0_0 \
+ACT_36_0_1_0_0 ACT_37_0_1_0_0 ACT_38_0_1_0_0 ACT_39_0_1_0_0 ACT_40_0_1_0_0 \
+ACT_42_0_1_0_0 ACT_43_0_1_0_0 ACT_44_0_1_0_0 ACT_46_0_1_0_0 ACT_47_0_1_0_0 \
+ACT_48_0_1_0_0 ACT_49_0_1_0_0 ACT_50_0_1_0_0 ACT_51_0_1_0_0 ACT_52_0_1_0_0 \
+ACT_53_0_2_0_0 ACT_54_0_2_0_0 ACT_55_0_2_0_0 ACT_56_0_2_0_0 ACT_57_0_2_0_0 \
+ACT_58_0_2_0_0 ACT_62_0_2_0_0 ACT_63_0_2_0_0 ACT_65_0_2_0_0 ACT_67_0_2_0_0 \
+ACT_68_0_2_0_0 ACT_69_0_2_0_0 ACT_70_0_2_0_0 ACT_71_0_3_0_0 ROOT_K0_0_0 \
+ROOT_K1_0_0
+.latch    [10] BOOT_REGISTER_0_0   1
+.latch    GO_6_0_0 PAUSE_REG_6_0_0   0
+.latch    [1054] PAUSE_REG_71_1_0   0
+.latch    GO_120_4_0 PAUSE_REG_120_4_0   0
+.latch    [1057] PAUSE_REG_124_4_0   0
+.names [10]
+.names snooping PAUSE_REG_120_4_0 [783] [784] GO_120_4_0
+0-1- 1
+11-0 1
+.names PAUSE_REG_6_0_0 ACT_23_0_0_0_0 ACT_2_0_0_0_0 GO_6_0_0
+--1 1
+10- 1
+.names [1051] E_Mark_to_Down
+1 1
+.names [1056] ComputedSRange
+1 1
+.names [10] temp
+1 1
+.names [1054] TEST_41_0_1_0_0_OUT
+1 1
+.names [1054] TEST_45_0_1_0_0_OUT
+1 1
+.names [1051] TEST_59_0_2_0_0_OUT
+1 1
+.names [1056] TEST_61_0_2_0_0_OUT
+1 1
+.names [1056] TEST_64_0_2_0_0_OUT
+1 1
+.names [1056] TEST_66_0_2_0_0_OUT
+1 1
+.names BOOT_REGISTER_0_0 ACT_7_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_12_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_14_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_18_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_19_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_20_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_21_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_22_0_0_0_0
+1 1
+.names [1054] ACT_24_0_0_0_0
+1 1
+.names [1062] ACT_25_0_0_0_0
+1 1
+.names [1062] ACT_26_0_0_0_0
+1 1
+.names [1060] ACT_27_0_0_0_0
+1 1
+.names [1060] ACT_28_0_0_0_0
+1 1
+.names [1054] ACT_29_0_1_0_0
+1 1
+.names [1054] ACT_30_0_1_0_0
+1 1
+.names [1054] ACT_31_0_1_0_0
+1 1
+.names [1054] ACT_32_0_1_0_0
+1 1
+.names [1054] ACT_33_0_1_0_0
+1 1
+.names [1054] ACT_34_0_1_0_0
+1 1
+.names [1054] ACT_35_0_1_0_0
+1 1
+.names [1054] ACT_36_0_1_0_0
+1 1
+.names [1054] ACT_37_0_1_0_0
+1 1
+.names [1054] ACT_38_0_1_0_0
+1 1
+.names [1054] ACT_39_0_1_0_0
+1 1
+.names [1054] ACT_40_0_1_0_0
+1 1
+.names [1054] ACT_43_0_1_0_0
+1 1
+.names [1054] ACT_44_0_1_0_0
+1 1
+.names [1054] ACT_47_0_1_0_0
+1 1
+.names [1054] ACT_48_0_1_0_0
+1 1
+.names [1054] ACT_49_0_1_0_0
+1 1
+.names [1054] ACT_50_0_1_0_0
+1 1
+.names [1054] ACT_51_0_1_0_0
+1 1
+.names [1051] ACT_52_0_1_0_0
+1 1
+.names [1051] ACT_53_0_2_0_0
+1 1
+.names [1051] ACT_54_0_2_0_0
+1 1
+.names [1051] ACT_55_0_2_0_0
+1 1
+.names [1051] ACT_56_0_2_0_0
+1 1
+.names [1051] ACT_57_0_2_0_0
+1 1
+.names [1051] ACT_58_0_2_0_0
+1 1
+.names [1056] ACT_63_0_2_0_0
+1 1
+.names [1065] ACT_67_0_2_0_0
+1 1
+.names [1065] ACT_68_0_2_0_0
+1 1
+.names [1056] ACT_69_0_2_0_0
+1 1
+.names [1056] ACT_70_0_2_0_0
+1 1
+.names [1056] ACT_71_0_3_0_0
+1 1
+.names [10] ROOT_K0_0_0
+1 1
+.names PAUSE_REG_71_1_0 [784] [670]
+0- 1
+-1 1
+.names Name [782] [672]
+0- 1
+-0 1
+.names Ack_From_Down GO_6_0_0 [673]
+0- 1
+-1 1
+.names TEST_59_0_2_0_0_IN [1051] [674]
+1- 1
+-0 1
+.names TEST_60_0_2_0_0_IN TEST_60_0_2_0_0_OUT [675]
+1- 1
+-0 1
+.names Name BOOT_REGISTER_0_0 [677]
+1- 1
+-0 1
+.names MD_Signal [1054] [682]
+1- 1
+-0 1
+.names BOOT_REGISTER_0_0 PAUSE_REG_6_0_0 [782]
+1- 1
+-1 1
+.names PAUSE_REG_124_4_0 [784] [1051] [783]
+--1 1
+10- 1
+.names Ack_From_Down [782] [784]
+1- 1
+-1 1
+.names ROOT_K1_0_0
+ 1
+.names [670] [1051]
+0 1
+.names snooping PAUSE_REG_120_4_0 [784] E_Compute_to_Down
+010 1
+.names [672] ACT_23_0_0_0_0
+0 1
+.names [673] [1054]
+0 1
+.names [674] TEST_60_0_2_0_0_OUT
+0 1
+.names [675] [1056]
+0 1
+.names snooping [783] [1057]
+11 1
+.names [677] ACT_2_0_0_0_0
+0 1
+.names Ack_From_Down BOOT_REGISTER_0_0 ACT_5_0_0_0_0
+01 1
+.names [1054] [1062] [1060]
+10 1
+.names MD_Signal BOOT_REGISTER_0_0 ACT_17_0_0_0_0
+01 1
+.names [682] [1062]
+0 1
+.names TEST_61_0_2_0_0_IN [1056] ACT_62_0_2_0_0
+11 1
+.names TEST_64_0_2_0_0_IN [1056] ACT_65_0_2_0_0
+11 1
+.names TEST_66_0_2_0_0_IN [1056] [1065]
+11 1
+.names TEST_41_0_1_0_0_IN [1054] ACT_42_0_1_0_0
+11 1
+.names TEST_45_0_1_0_0_IN [1054] ACT_46_0_1_0_0
+11 1
+.end

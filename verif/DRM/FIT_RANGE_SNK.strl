@@ -1,0 +1,7 @@
+module FIT_RANGE_SNK:
+
+input My_Sample_Range;
+
+await immediate My_Sample_Range;
+await tick;
+end module

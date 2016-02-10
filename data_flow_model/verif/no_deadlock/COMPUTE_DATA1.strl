@@ -1,0 +1,12 @@
+%##########################################################
+%#  This module is to control COMPUTE_DATA modules.
+%##########################################################
+
+module COMPUTE_DATA1:
+
+%
+% body part
+%
+await tick;
+await tick;
+end module

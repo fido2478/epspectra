@@ -1,0 +1,70 @@
+%
+%   P_MOD module 
+%
+
+module P_MOD:
+
+type StrlSampleRange;
+type Debug4Var;
+constant INITIAL_RANGE : StrlSampleRange;
+input start_mark;
+input start_compute;%{compute}%
+input input_compute:integer;%{compute}%
+output output_compute:integer;%{compute}%
+
+output p_mod_name:string;
+input input_sample_range:StrlSampleRange;
+
+input RET_From_UPstream:integer; %{return type from upstream }%
+output My_return_value:integer;
+output sig_for_upstream; %{signal to be passed to upstream }%
+output Srange_for_upstream:StrlSampleRange;%{Srange value passed to upstream }%
+
+output temp:Debug4Var;%{signal for debugging}%
+output MyMarkedData:StrlSampleRange;
+
+%
+%  body part
+%
+signal My_Name:string,
+    My_Sample_Range:=INITIAL_RANGE:StrlSampleRange in
+trap body_loop in 
+%{   loop    }%
+   [
+      every immediate start_mark do
+      [
+	 emit My_Sample_Range(?input_sample_range);
+	 emit My_Name(?p_mod_name);
+      ||
+	 run MARK_DATA[signal My_Name/name_module;
+		       signal My_Sample_Range/sample_range;
+		       signal RET_From_UPstream/retVal_from_upstream;
+		       signal My_return_value/return_value;
+		       signal sig_for_upstream/call_upstream;
+		       signal Srange_for_upstream/forecastrange;
+		       signal temp/debug_temp];
+      ];
+      exit body_loop;
+   end every
+   ||
+   every immediate start_compute do
+      [
+	 emit My_Name(?p_mod_name);
+      ||
+	 run COMPUTE_DATA[signal My_Name/name_module;
+			  signal input_compute/get_sig;
+			  signal output_compute/return_sig;
+			  signal MyMarkedData/MYMARKED_DATA;
+			  signal temp/debug_temp];
+      ];
+      exit body_loop
+   end every
+   ];
+%{
+   await tick;
+end loop;
+}%
+end trap
+end signal
+end module
+

@@ -1,0 +1,148 @@
+#
+# Copyright 2000, 2001 INRIA
+# Permission to use, copy, modify, distribute, and sell this software and
+# its documentation for any purpose is hereby granted without fee, provided
+# that the above copyright notice appear in all copies and that both that
+# copyright notice and this permission notice appear in supporting
+# documentation, and that the name of INRIA not be used in advertising or
+# publicity pertaining to distribution of the software without specific,
+# written prior permission.
+#
+
+
+ifneq (,)
+This makefile requires GNU Make.
+endif
+
+# You can change and validate below if neccessary
+#SPECTRA_BASE := /home/~/epspectra/data_flow_model
+#
+SPECTRADIR :=$(SPECTRA_BASE)
+######################################################
+# CONFIGURATION for ESTEREL
+# It may need changes specially for ESTEREL, XES and XEVE
+######################################################
+
+ESTEREL_V592	= esterel
+ESTEREL_V601	= esterelv6
+ESTEREL_V603	= esterelv6_03-3
+ESTEREL		= $(ESTEREL_V603)
+XES		= xesv6
+XEVE		= xeve
+REMLATCH	= remlatch
+SCLINK		= sclink
+SCLINK_V603	= sclinkv6_03-3
+AREAOPT		= areaopt
+BLIFOPT 	= blifopt
+BLIFSSC 	= blifssc
+BLIFSC_V603	= blifscv6_03-3
+BLIFSC_V6	= blifscv6
+BLIFSC		= blifsc
+DDDXES		= dddxes
+IFLAG		= -I
+ICHECK		= -Icheck
+CAUSAL		= -causal
+SIMUL		= -simul
+STRL_NAMING	= -B $@
+CYCL_SIMUL	= $(CAUSAL) $(SIMUL)
+CYCL_EXE	= $(CAUSAL)
+TEST_EXE	=
+
+######################################################
+# C/C++ COMPILE OPTION
+# It may need changes for OPTIMA
+######################################################
+
+GPROF		= 
+#-pg -p
+DBUG		= 
+#-g
+OPTIMA		= -O
+NAMING_DES	= -o $@
+CC		= gcc $(DBUG) $(GPROF) $(OPTIMA)
+C++		= g++ $(DBUG) $(GPROF) $(OPTIMA)
+G++		= $(C++)
+C2O		= $(CC) -c 
+LINKER      	= $(C++)
+LINKER_FLAGS	= -o $@
+AS 		= $(SPECTRA_BASE)/lib/c++/nasm/nasm
+CP		= cp
+RM		= rm -f
+MV		= mv
+MAKE		= make
+OBJ		= .o
+EXE		= .exe
+
+######################################################
+# SET FLAG
+######################################################
+
+QT_OS_VERSION = linux-g++-shared
+
+ifeq ($(HOSTTYPE),i386)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i486)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i586)
+  MMX = yes
+endif
+ifeq ($(HOSTTYPE),i686)
+  MMX = yes
+endif
+
+DEFINES = -DCACHESIZE=10485760 -DGSM -DSLOWDOWN
+#-DPERFMON 
+#-DGSM
+#-D_GUI_DEFINE -DPERFMON
+#-DPARANOID 
+#-D_PERF
+#-DDEBUG
+#-DCOMP_VAL
+#-DTHREADS
+#-DCACHESIZE=262144 
+#-DCACHESIZE=32768
+#-DCACHESIZE=262144
+#-DCACHESIZE=524288
+#-DCACHESIZE=10485760
+#-DSLOWDOWN
+
+ifdef MMX
+  ### Comment out this line to disable MMX
+  DEFINES := $(DEFINES) -DENABLE_MMX
+endif
+
+CFLAGS = -Wall  $(DEFINES)
+
+######################################################
+# Do not touch
+# DEFINITION of DIR
+######################################################
+
+LIBDIR 	= $(SPECTRA_BASE)/lib
+STRLDIR = $(LIBDIR)/strl
+SRC 	= $(STRLDIR)/src
+SNK 	= $(STRLDIR)/snk
+I_MOD 	= $(STRLDIR)/i_mod
+SUBMOD 	= $(STRLDIR)/submod
+CXX 	= $(LIBDIR)/c++
+P_MOD	= $(CXX)/p_mod
+INCLUDE = $(LIBDIR)/include
+INTFACE = $(LIBDIR)/interface
+FFTW 	= $(LIBDIR)/fftw
+VRGUI 	= $(LIBDIR)/vrgui
+#QTDIR 	= $(LIBDIR)/qt
+
+STRLINC = $(INC_SYSTEM) -I. -I$(STRLDIR)/i_mod -I$(STRLDIR)/snk -I$(STRLDIR)/src -I$(STRLDIR)/submod -I$(INCLUDE) -I$(INTFACE)
+
+CCINC 	= $(INC_SYSTEM) -I. -I$(INTFACE) -I$(INCLUDE) -I$(CXX) -I$(CXX)/gsm -I$(CXX)/snk -I$(CXX)/src -I$(CXX)/p_mod -I$(FFTW) -I$(VRGUI) -I$(QTDIR)/include -I$(FFTW)/src
+VOICE_LIBS =  
+#$(SPECTRA_BASE)/lib/c++/libspecvoice.so $(CXX)/libgsm.so
+SPECTRA_LIBS = $(SPECTRA_BASE)/lib/c++/libspectra.so
+QLIBS	= -L$(QTDIR)/lib -lqt -lm /usr/X11R6/lib/libX11.a /usr/X11R6/lib/libXext.a
+GSMLIB 	= -L$(CXX)/gsm -lgsm
+GSMOBJ	= $(CXX)/libgsm.so.1.0
+GSMINC  = $(INC_SYSTEM) -I. -I$(INTFACE) -I$(INCLUDE) -I$(CXX) -I$(CXX)/snk -I$(CXX)/src -I$(CXX)/p_mod
+
+SETOFREMOVE	= *.sc *.ic *.ssc *.ctbl *.log *.o

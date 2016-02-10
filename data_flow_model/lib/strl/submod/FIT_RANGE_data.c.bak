@@ -1,0 +1,163 @@
+#include "FIT_RANGE.h"
+#include "stdio.h"
+#ifndef XES
+#ifdef GSM
+#include "../../interface/intergsm.h"
+#else
+#include "../../interface/interface.h"  /* C++ class header */
+#endif
+#endif
+#ifndef _DATATYPE_H
+#define _DATATYPE_H
+
+#include "../../include/datatype.h"
+
+#endif
+
+/*---------------------------------------------
+ * Describe Procedure & Function
+ * This is FIT_RANGE_data.c
+ *---------------------------------------------*/
+
+StrlSampleIndex ADD_INDEX_SIZE(char *str)
+{
+  VrSampleRange data;
+  static char indx[80]="";
+
+  sscanf(str, "%lld %lu",&data.index, &data.size);
+  data.index=data.index + data.size;
+  sprintf(indx, "%lld",data.index);
+  /*indx=lld2str(data.index);*/
+  return indx;
+}
+
+void ADD_INDEX_SIZENEW(StrlSampleIndex* indx, char *str)
+{
+  VrSampleRange data;
+
+  sscanf(str, "%lld %lu",&data.index, &data.size);
+  data.index=data.index + data.size;
+  sprintf(indx, "%lld",data.index);
+}
+
+int GET_SIZE(char *str)
+{
+  int data;
+  sscanf(str, "%d %d",&data, &data);
+  return data;
+}
+
+StrlSampleIndex GETINDEX(char *str)
+{
+  VrSampleRange data;
+  static char indx[80]="";
+  sscanf(str, "%lld %lu",&data.index, &data.size);
+  sprintf(indx, "%lld",data.index);
+  /*str=lld2str(data.index);*/
+  return indx;
+}
+ 
+void GETINDEXNEW(StrlSampleIndex* indx, char *str)
+{
+  VrSampleRange data;
+  sscanf(str, "%lld %lu",&data.index, &data.size);
+  sprintf(indx, "%lld",data.index);
+}
+
+
+int SUBTRACT_A_B(StrlSampleIndex a,StrlSampleIndex b)
+{
+  long long x,y;
+  x=str2lld(a);   y=str2lld(b);
+  return (int) x-y;
+}
+
+int ROUNDOWN_SIZE(int x,UnsignedInt y)
+{
+  return x=((x/y)*y);
+}
+/*
+int ROUNDUP_REQUESTSIZE(int x,UnsignedInt y)
+{
+  return x=(((x + y - 1)/y ) * (y));
+}
+*/
+
+StrlSampleRange SET_SAMPLERANGE(StrlSampleIndex y,int z)
+{
+  VrSampleRange data;
+  static char str[80]="";
+  data.index=str2lld(y);
+  data.size=z;
+  sprintf(str, "%lld %lu",data.index, data.size);
+  /*str=SRange2str(data);*/
+  return str;
+}
+
+StrlSampleRange DOWNCASTS(StrlSampleRange s,char *r)
+{
+#ifndef XES
+  return InterDowncast(str2SRange(s),r);
+#endif
+}
+
+StrlSampleRange FORECASTS(StrlSampleRange s,char *r)
+{
+#ifndef XES
+  return InterForecast(str2SRange(s),r); 
+#endif
+}
+
+void DOWNCASTSNEW(StrlSampleRange* str,StrlSampleRange s,char *r)
+{
+#ifndef XES
+  InterDowncastNew(str,str2SRange(s),r);
+#endif
+}
+
+void FORECASTSNEW(StrlSampleRange* str,StrlSampleRange s,char *r)
+{
+#ifndef XES
+  InterForecastNew(str,str2SRange(s),r); 
+#endif
+}
+
+void SET_SAMPLERANGENEW(StrlSampleRange* str,StrlSampleIndex y,int z)
+{
+  VrSampleRange data;
+  data.index=str2lld(y);
+  data.size=z;
+  sprintf(str, "%lld %lu",data.index, data.size);
+}
+
+
+/*
+int REAL_MARK_DATA(StrlSampleIndex p_wp,int req,int dm,StrlSampleRange range,char *r)
+{
+  VrSampleIndex x=str2lld(p_wp);
+  VrSampleRange rg=str2SRange(range);
+  return InterStrlmarkData(x,req,dm,rg,r);
+}  
+*/
+int REAL_FIT_RANGE(StrlSampleIndex p_wp,int req,StrlSampleRange range,char *r)
+{
+#ifndef XES
+  VrSampleIndex x=str2lld(p_wp);
+  VrSampleRange rg=str2SRange(range);
+  return InterStrlFitRange(x,req,rg,r);
+#endif
+}  
+
+int GETMAXOUTSIZE(char *r)
+{
+#ifndef XES
+  return InterGetMaxOutSize(r);
+#endif
+}
+
+int error_exit(int x)
+{
+  fprintf(stderr,"impossible case\n");
+  exit(x);
+}
+

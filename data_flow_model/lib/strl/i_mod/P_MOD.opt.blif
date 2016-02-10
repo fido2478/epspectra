@@ -1,0 +1,375 @@
+.model P_MOD
+.inputs Name S_Mark_from_Up Ack_From_Down S_Compute_from_Up snooping \
+TEST_37_0_0_0_0_IN TEST_37_0_0_1_0_IN TEST_43_0_0_1_0_IN TEST_63_0_2_0_0_IN \
+TEST_63_0_2_1_0_IN TEST_79_0_3_1_0_IN TEST_80_0_3_1_0_IN TEST_81_0_3_1_0_IN \
+TEST_84_0_3_1_0_IN TEST_86_0_3_1_0_IN
+.outputs E_Mark_to_Down E_Compute_to_Down Ack_to_Up sig_on ComputedSRange temp \
+TEST_37_0_0_0_0_OUT TEST_37_0_0_1_0_OUT TEST_43_0_0_1_0_OUT \
+TEST_63_0_2_0_0_OUT TEST_63_0_2_1_0_OUT TEST_79_0_3_1_0_OUT \
+TEST_80_0_3_1_0_OUT TEST_81_0_3_1_0_OUT TEST_84_0_3_1_0_OUT \
+TEST_86_0_3_1_0_OUT ACT_2_0_0_0_0 ACT_5_0_0_0_0 ACT_8_0_0_0_0 ACT_10_0_0_0_0 \
+ACT_15_0_0_0_0 ACT_20_0_0_0_0 ACT_22_0_0_0_0 ACT_23_0_0_0_0 ACT_24_0_0_0_0 \
+ACT_25_0_0_0_0 ACT_26_0_0_0_0 ACT_27_0_0_0_0 ACT_28_0_0_0_0 ACT_29_0_0_0_0 \
+ACT_30_0_0_0_0 ACT_31_0_0_0_0 ACT_32_0_0_0_0 ACT_33_0_0_0_0 ACT_34_0_0_0_0 \
+ACT_35_0_0_0_0 ACT_36_0_0_0_0 ACT_38_0_0_1_0 ACT_39_0_0_0_0 ACT_39_0_0_1_0 \
+ACT_40_0_0_1_0 ACT_41_0_0_1_0 ACT_42_0_0_1_0 ACT_44_0_0_1_0 ACT_45_0_0_1_0 \
+ACT_46_0_0_1_0 ACT_47_0_0_0_0 ACT_48_0_2_0_0 ACT_48_0_2_1_0 ACT_49_0_2_0_0 \
+ACT_49_0_2_1_0 ACT_50_0_2_0_0 ACT_50_0_2_1_0 ACT_51_0_2_0_0 ACT_51_0_2_1_0 \
+ACT_52_0_2_0_0 ACT_52_0_2_1_0 ACT_53_0_2_0_0 ACT_53_0_2_1_0 ACT_54_0_2_0_0 \
+ACT_54_0_2_1_0 ACT_55_0_2_0_0 ACT_55_0_2_1_0 ACT_56_0_2_0_0 ACT_56_0_2_1_0 \
+ACT_57_0_2_0_0 ACT_57_0_2_1_0 ACT_58_0_2_0_0 ACT_58_0_2_1_0 ACT_59_0_2_0_0 \
+ACT_59_0_2_1_0 ACT_60_0_2_0_0 ACT_60_0_2_1_0 ACT_61_0_2_0_0 ACT_61_0_2_1_0 \
+ACT_62_0_2_0_0 ACT_62_0_2_1_0 ACT_64_0_2_0_0 ACT_64_0_2_1_0 ACT_65_0_2_0_0 \
+ACT_65_0_2_1_0 ACT_66_0_2_0_0 ACT_66_0_2_1_0 ACT_67_0_2_0_0 ACT_67_0_2_1_0 \
+ACT_68_0_2_0_0 ACT_68_0_2_1_0 ACT_69_0_2_0_0 ACT_69_0_2_1_0 ACT_70_0_2_0_0 \
+ACT_70_0_2_1_0 ACT_71_0_2_1_0 ACT_72_0_2_1_0 ACT_73_0_3_1_0 ACT_74_0_3_1_0 \
+ACT_75_0_3_1_0 ACT_76_0_3_1_0 ACT_77_0_3_1_0 ACT_78_0_3_1_0 ACT_82_0_3_1_0 \
+ACT_83_0_3_1_0 ACT_85_0_3_1_0 ACT_87_0_3_1_0 ACT_88_0_3_1_0 ACT_89_0_3_1_0 \
+ACT_90_0_3_1_0 ACT_91_0_4_1_0 ROOT_K0_0_0 ROOT_K1_0_0
+.latch    GO_10_0_0 PAUSE_REG_10_0_0   0
+.latch    GO_21_0_0 PAUSE_REG_21_0_0   0
+.latch    PAUSE_REG_IN_38_0_1 PAUSE_REG_38_0_1   0
+.latch    [2203] PAUSE_REG_51_0_1   0
+.latch    PAUSE_REG_IN_86_1_1 PAUSE_REG_86_1_1   0
+.latch    PAUSE_REG_IN_94_1_1 PAUSE_REG_94_1_1   0
+.latch    [2207] PAUSE_REG_106_1_1   0
+.latch    PAUSE_REG_IN_146_2_1 PAUSE_REG_146_2_1   0
+.latch    GO_198_5_1 PAUSE_REG_198_5_1   0
+.latch    [2193] PAUSE_REG_210_6_0   0
+.latch    sig_on PAUSE_REG_216_6_0   0
+.latch    [900] [1112]   0
+.names [20]
+.names PAUSE_REG_10_0_0 GO_10_0_0 [2213] GO_14_0_0
+-1- 1
+0-0 1
+.names PAUSE_REG_146_2_1 PAUSE_REG_210_6_0 [2192] [2196] ACT_2_0_0_0_0 sig_on
+--1-- 1
+---1- 1
+00--0 1
+.names [1114] [2198] GO_44_0_1
+0- 1
+-1 1
+.names PAUSE_REG_106_1_1 PAUSE_REG_86_1_1 PAUSE_REG_94_1_1 [2196] GO_82_1_0
+---1 1
+100- 1
+.names PAUSE_REG_86_1_1 PAUSE_REG_94_1_1 GO_82_1_0 PAUSE_REG_IN_86_1_1 \
+PAUSE_REG_IN_94_1_1 [2207] GO_110_1_0
+1--0-- 1
+-1--0- 1
+--1--0 1
+.names GO_110_1_0 [2199] TEST_37_0_0_0_0_OUT
+1- 1
+-1 1
+.names S_Mark_from_Up PAUSE_REG_21_0_0 [2192] GO_21_0_0
+--1 1
+01- 1
+.names snooping PAUSE_REG_198_5_1 [1112] GO_198_5_1
+11- 1
+0-1 1
+.names Name PAUSE_REG_10_0_0 ACT_2_0_0_0_0 GO_10_0_0
+--1 1
+01- 1
+.names PAUSE_REG_38_0_1 TEST_37_0_0_0_0_OUT [1114] [2195] [2198] [2200] \
+PAUSE_REG_IN_38_0_1
+--11-- 1
+1---0- 1
+-1---0 1
+.names S_Mark_from_Up Ack_From_Down PAUSE_REG_86_1_1 [2207] \
+PAUSE_REG_IN_86_1_1
+-01- 1
+1--1 1
+.names S_Mark_from_Up Ack_From_Down PAUSE_REG_94_1_1 [2207] \
+PAUSE_REG_IN_94_1_1
+0-1- 1
+-1-1 1
+.names [2198] [2200] PAUSE_REG_IN_146_2_1
+1- 1
+-1 1
+.names PAUSE_REG_146_2_1 E_Mark_to_Down
+1 1
+.names [2194] E_Compute_to_Down
+1 1
+.names [2196] Ack_to_Up
+1 1
+.names [2202] ComputedSRange
+1 1
+.names [20] temp
+1 1
+.names [2195] TEST_37_0_0_1_0_OUT
+1 1
+.names [2194] TEST_43_0_0_1_0_OUT
+1 1
+.names [2200] TEST_63_0_2_0_0_OUT
+1 1
+.names [2198] TEST_63_0_2_1_0_OUT
+1 1
+.names [2197] TEST_79_0_3_1_0_OUT
+1 1
+.names [2202] TEST_81_0_3_1_0_OUT
+1 1
+.names [2202] TEST_84_0_3_1_0_OUT
+1 1
+.names [2202] TEST_86_0_3_1_0_OUT
+1 1
+.names [2213] ACT_10_0_0_0_0
+1 1
+.names [2213] ACT_15_0_0_0_0
+1 1
+.names [2213] ACT_20_0_0_0_0
+1 1
+.names [2213] ACT_22_0_0_0_0
+1 1
+.names [2213] ACT_23_0_0_0_0
+1 1
+.names [2213] ACT_24_0_0_0_0
+1 1
+.names [2213] ACT_25_0_0_0_0
+1 1
+.names [2213] ACT_26_0_0_0_0
+1 1
+.names [2213] ACT_27_0_0_0_0
+1 1
+.names [2213] ACT_28_0_0_0_0
+1 1
+.names [2213] ACT_29_0_0_0_0
+1 1
+.names [2213] ACT_30_0_0_0_0
+1 1
+.names [2192] ACT_31_0_0_0_0
+1 1
+.names [2192] ACT_32_0_0_0_0
+1 1
+.names [2199] ACT_33_0_0_0_0
+1 1
+.names [2199] ACT_34_0_0_0_0
+1 1
+.names GO_110_1_0 ACT_35_0_0_0_0
+1 1
+.names GO_110_1_0 ACT_36_0_0_0_0
+1 1
+.names [2198] ACT_38_0_0_1_0
+1 1
+.names [2200] ACT_39_0_0_0_0
+1 1
+.names GO_44_0_1 ACT_39_0_0_1_0
+1 1
+.names PAUSE_REG_146_2_1 ACT_40_0_0_1_0
+1 1
+.names [2197] ACT_41_0_0_1_0
+1 1
+.names [2197] ACT_42_0_0_1_0
+1 1
+.names [2195] ACT_44_0_0_1_0
+1 1
+.names [2195] ACT_45_0_0_1_0
+1 1
+.names [2196] ACT_46_0_0_1_0
+1 1
+.names [2196] ACT_47_0_0_0_0
+1 1
+.names [2200] ACT_48_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_48_0_2_1_0
+1 1
+.names [2200] ACT_49_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_49_0_2_1_0
+1 1
+.names [2200] ACT_50_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_50_0_2_1_0
+1 1
+.names [2200] ACT_51_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_51_0_2_1_0
+1 1
+.names [2200] ACT_52_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_52_0_2_1_0
+1 1
+.names [2200] ACT_53_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_53_0_2_1_0
+1 1
+.names [2200] ACT_54_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_54_0_2_1_0
+1 1
+.names [2200] ACT_55_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_55_0_2_1_0
+1 1
+.names [2200] ACT_56_0_2_0_0
+1 1
+.names GO_44_0_1 ACT_56_0_2_1_0
+1 1
+.names [2200] ACT_57_0_2_0_0
+1 1
+.names [2198] ACT_57_0_2_1_0
+1 1
+.names [2200] ACT_58_0_2_0_0
+1 1
+.names [2198] ACT_58_0_2_1_0
+1 1
+.names [2200] ACT_59_0_2_0_0
+1 1
+.names [2198] ACT_59_0_2_1_0
+1 1
+.names [2200] ACT_60_0_2_0_0
+1 1
+.names [2198] ACT_60_0_2_1_0
+1 1
+.names [2200] ACT_61_0_2_0_0
+1 1
+.names [2198] ACT_61_0_2_1_0
+1 1
+.names [2200] ACT_62_0_2_0_0
+1 1
+.names [2198] ACT_62_0_2_1_0
+1 1
+.names [2200] ACT_65_0_2_0_0
+1 1
+.names [2198] ACT_65_0_2_1_0
+1 1
+.names [2200] ACT_66_0_2_0_0
+1 1
+.names [2198] ACT_66_0_2_1_0
+1 1
+.names [2200] ACT_67_0_2_0_0
+1 1
+.names [2198] ACT_67_0_2_1_0
+1 1
+.names [2200] ACT_68_0_2_0_0
+1 1
+.names [2198] ACT_68_0_2_1_0
+1 1
+.names [2200] ACT_69_0_2_0_0
+1 1
+.names [2198] ACT_69_0_2_1_0
+1 1
+.names [2200] ACT_70_0_2_0_0
+1 1
+.names [2198] ACT_70_0_2_1_0
+1 1
+.names PAUSE_REG_146_2_1 ACT_71_0_2_1_0
+1 1
+.names PAUSE_REG_146_2_1 ACT_72_0_2_1_0
+1 1
+.names [2197] ACT_73_0_3_1_0
+1 1
+.names [2197] ACT_74_0_3_1_0
+1 1
+.names [2197] ACT_75_0_3_1_0
+1 1
+.names [2197] ACT_76_0_3_1_0
+1 1
+.names [2197] ACT_77_0_3_1_0
+1 1
+.names [2197] ACT_78_0_3_1_0
+1 1
+.names [2202] ACT_83_0_3_1_0
+1 1
+.names [2210] ACT_87_0_3_1_0
+1 1
+.names [2210] ACT_88_0_3_1_0
+1 1
+.names [2202] ACT_89_0_3_1_0
+1 1
+.names [2202] ACT_90_0_3_1_0
+1 1
+.names [2202] ACT_91_0_4_1_0
+1 1
+.names [20] ROOT_K0_0_0
+1 1
+.names snooping [1112] [2197] [900]
+--1 1
+11- 1
+.names TEST_37_0_0_1_0_IN [2195] [1114]
+1- 1
+-0 1
+.names snooping PAUSE_REG_198_5_1 [1460]
+1- 1
+-0 1
+.names TEST_43_0_0_1_0_IN [2194] [1461]
+0- 1
+-0 1
+.names [2194] [2195] [1462]
+0- 1
+-1 1
+.names S_Compute_from_Up [1662] [1464]
+0- 1
+-0 1
+.names Ack_From_Down PAUSE_REG_38_0_1 [1465]
+0- 1
+-0 1
+.names S_Mark_from_Up PAUSE_REG_21_0_0 [1466]
+0- 1
+-0 1
+.names TEST_37_0_0_0_0_IN TEST_37_0_0_0_0_OUT [1467]
+1- 1
+-0 1
+.names TEST_79_0_3_1_0_IN [2197] [1468]
+1- 1
+-0 1
+.names TEST_80_0_3_1_0_IN TEST_80_0_3_1_0_OUT [1469]
+1- 1
+-0 1
+.names Name [2213] [1471]
+1- 1
+-0 1
+.names S_Mark_from_Up Ack_From_Down GO_82_1_0 [1474]
+--0 1
+11- 1
+.names PAUSE_REG_216_6_0 PAUSE_REG_210_6_0 [1480]
+1- 1
+-1 1
+.names PAUSE_REG_146_2_1 PAUSE_REG_51_0_1 [1662]
+1- 1
+-1 1
+.names ROOT_K1_0_0
+ 1
+.names GO_14_0_0 [2192]
+0 1
+.names sig_on [2193]
+0 1
+.names [1460] [2194]
+0 1
+.names [1461] [2195]
+0 1
+.names [1462] [2196]
+0 1
+.names [1464] [2197]
+0 1
+.names [1465] [2198]
+0 1
+.names [1466] [2199]
+0 1
+.names [1467] [2200]
+0 1
+.names [1468] TEST_80_0_3_1_0_OUT
+0 1
+.names [1469] [2202]
+0 1
+.names S_Compute_from_Up [1662] [2203]
+01 1
+.names [1471] ACT_2_0_0_0_0
+0 1
+.names S_Mark_from_Up [2213] ACT_5_0_0_0_0
+01 1
+.names Ack_From_Down [2213] ACT_8_0_0_0_0
+01 1
+.names [1474] [2207]
+0 1
+.names TEST_81_0_3_1_0_IN [2202] ACT_82_0_3_1_0
+11 1
+.names TEST_84_0_3_1_0_IN [2202] ACT_85_0_3_1_0
+11 1
+.names TEST_86_0_3_1_0_IN [2202] [2210]
+11 1
+.names TEST_63_0_2_0_0_IN [2200] ACT_64_0_2_0_0
+11 1
+.names TEST_63_0_2_1_0_IN [2198] ACT_64_0_2_1_0
+11 1
+.names [1480] [2213]
+0 1
+.end

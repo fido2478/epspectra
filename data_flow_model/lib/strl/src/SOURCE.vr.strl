@@ -1,0 +1,48 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission.
+%
+%#############################################################
+% Source module
+% There is no time-delay between marking and computing method.
+% ############################################################
+
+module SOURCE:
+
+type VrSampleRange;
+type UnsignedLL;
+
+constant INITIAL_RANGE:VrSampleRange;
+
+input Name:string;
+input InitRange:VrSampleRange;
+input Ack_From_Down:VrSampleRange;
+output E_Mark_to_Down:VrSampleRange;%{notify my mark finished to down}%
+output E_Compute_to_Down;%{trigger compute method of downstream}%
+input snooping;
+%{output ComputedSRange : VrSampleRange;}%
+%
+%  body part
+%
+var INITIAL_FLAG:=true:boolean, 
+    my_output:=INITIAL_RANGE:VrSampleRange in
+
+signal My_Sample_Range:=INITIAL_RANGE:VrSampleRange in
+   loop
+      await immediate Ack_From_Down;
+      my_output:=?Ack_From_Down;
+	 emit My_Sample_Range(my_output);
+      run  FIT_RANGE_SRC[signal E_Mark_to_Down/output_sample_range];
+      run COMP_DATA;
+      run TIMER;
+      emit E_Compute_to_Down
+   end loop
+end signal
+end var
+end module

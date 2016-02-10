@@ -1,0 +1,17 @@
+%##########################################################
+%#  This module is to consume time.
+%##########################################################
+
+module TIMER:
+
+input set_on;
+
+trap main_loop in
+   loop
+      suspend
+	 await tick;
+	 exit main_loop
+      when immediate set_on
+   end loop
+end trap
+end module

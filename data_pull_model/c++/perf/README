@@ -1,0 +1,62 @@
+x86 Performance-Monitoring Counters
+===================================
+
+Overview
+--------
+This package adds support to the Linux kernel for using the
+Performance-Monitoring Counters (PMCs) found in modern x86-class
+processors. (Intel, Cyrix, and IDT WinChip are supported.)
+
+PMCs are "event counters" capable of recording any of a large
+number of performance-related events during execution.
+These events typically include instructions executed, cache
+misses, TLB misses, stalls, and various events specific to
+the microarchitecture of the processor being used.
+
+PMCs are primarily used by compiler writers, runtime system
+developers, and kernel developers, to identify code sections
+exhibiting low-level performance problems, and to validate
+code changes intended to improve performance.
+
+Features
+--------
+Each Linux process has its own set of "virtual" PMCs. That is,
+to a process the PMCs appear to be private and unrelated to the
+activities of other processes in the system. The virtual PMCs
+have 64-bit precision, even though current processors only
+implement 40 or 48-bit PMCs.
+
+On many machines (those that support both the RDPMC and RDTSC
+instructions), the PMCs can be sampled entirely in user-space
+without incurring the overhead of making a system call.
+
+[Richard Gooch' Model-Specific Registers patch includes a
+driver for accessing the PMCs. However, his driver is not
+integrated with Linux' process management and does not support
+"virtual-mode" PMCs. Since I really need virtual PMCs, I wrote
+this package instead. There's also a "pperf/libpperf" package
+from http://qso.lanl.gov/~mpg/pperf.html which also does not
+support virtual-mode PMCs.]
+
+Status
+------
+The current release is version 0.2 for Linux 2.3.5.
+The code has been tested on Pentium MMX and Pentium II machines.
+
+These are the currently known main limitations:
+- Global-mode counters, used when profiling the kernel itself,
+  are not yet implemented.
+- The driver does not attempt to hide any processor-specific
+  details from the user. The user-level library does not yet
+  implement any abstractions, so the user has to know _all_
+  processor-specific details related to the performance-monitoring
+  registers and the model-specific registers used to control them.
+- User access to the driver is via ioctl() on /dev/perfctr.
+  Linux/sparc64 has sys_perfctr(), perhaps Linux/i386 should too?
+
+Availability
+------------
+The latest version of this package can be downloaded from
+http://www.csd.uu.se/~mikpe/linux/
+
+/ Mikael Pettersson

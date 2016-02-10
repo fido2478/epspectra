@@ -1,0 +1,75 @@
+%##########################################################
+%#  This module is to control Mark_Data modules.
+%##########################################################
+
+module FIT_RANGE_SRC:
+
+type VrSampleRange;
+type VrSampleIndex;
+type UnsignedInt;
+type Debug4Var;%{for debug}%
+
+constant INITIAL_INDEX : VrSampleIndex;
+constant INITIAL_RANGE : VrSampleRange;
+constant INITIAL_UNSIGNEDINT : UnsignedInt;
+constant INITIAL_DEBUG4VAR : Debug4Var;%{for debug}%
+
+input Name : string;
+input InitRange:VrSampleRange;
+input My_Sample_Range : VrSampleRange;
+output output_sample_range : VrSampleRange;
+
+%function GETMARKEDWP(string):VrSampleIndex;
+function GET_SIZEVR(VrSampleRange):integer;
+%function ADD_INDEX_SIZE(VrSampleRange):VrSampleIndex;
+procedure GETMARKEDWPVR(VrSampleIndex)(string);
+procedure ADD_INDEX_SIZEVR(VrSampleIndex)(VrSampleRange);
+function SUBTRACT_A_BVR(VrSampleIndex,VrSampleIndex):integer;
+function GETMAXOUTSIZE(string):integer;
+function GET_OUTPUTSIZE(string):UnsignedInt;
+function ROUNDOWN_SIZE(integer,UnsignedInt):integer;
+%function SET_SAMPLERANGE(VrSampleIndex,integer):VrSampleRange;
+procedure SET_SAMPLERANGEVR(VrSampleRange)(VrSampleIndex,integer);
+function REAL_FIT_RANGEVR(VrSampleIndex,integer,VrSampleRange,string):integer;
+function error_exit(integer):integer;
+function DEBUG_RANGE(string,VrSampleRange):Debug4Var;%{for debug}%
+%procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+%
+% body part
+%
+var input_range:=INITIAL_RANGE:VrSampleRange,
+    output_range:=INITIAL_RANGE:VrSampleRange,
+    pendingWP:=INITIAL_INDEX:VrSampleIndex,
+    remainedWP:=INITIAL_INDEX:VrSampleIndex,
+    requestSize:=0:integer,
+    maxOutSize:=0:integer,
+    temp_int:=0:integer,
+    temp_unsigned:=INITIAL_UNSIGNEDINT:UnsignedInt in
+   
+   await immediate My_Sample_Range;
+   input_range:=?My_Sample_Range;
+%   pendingWP:=GETMARKEDWP(?Name);%{my marked point}%
+%   remainedWP:=ADD_INDEX_SIZE(input_range);%{upstream's marked point}%
+   call GETMARKEDWPVR(pendingWP)(?Name);
+   call ADD_INDEX_SIZEVR(remainedWP)(input_range);
+   requestSize:=SUBTRACT_A_BVR(pendingWP,remainedWP);%{evaluate datasize}%
+   if requestSize<0 then
+      requestSize:=SUBTRACT_A_BVR(remainedWP,pendingWP);
+   elsif requestSize=0 then
+      requestSize:=GET_SIZEVR(?InitRange);
+   else
+      maxOutSize:=GETMAXOUTSIZE(?Name); 
+    if requestSize<maxOutSize then
+      requestSize:=maxOutSize
+    end if;
+   end if;
+   temp_unsigned:=GET_OUTPUTSIZE(?Name);%{get output unit}%
+   requestSize:=ROUNDOWN_SIZE(requestSize,temp_unsigned);
+%   output_range:=SET_SAMPLERANGE(pendingWP,requestSize);%{set my SampleRange}%
+   call SET_SAMPLERANGEVR(output_range)(pendingWP,requestSize);%{set my SampleRange}%
+   temp_int:=REAL_FIT_RANGEVR(pendingWP,requestSize,INITIAL_RANGE,?Name);
+%   call LOCALINCAWAITTICK()(?Name);%{perfgraph}%
+   await tick;
+   emit output_sample_range(output_range);
+end var
+end module

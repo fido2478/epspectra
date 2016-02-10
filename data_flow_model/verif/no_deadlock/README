@@ -1,0 +1,1 @@
+In the MARK_DATA.strl, when add await tick to it, it generates deadlock. That is, when MARK_DATA consumes more times than COMPUTE_DATA, Problem generates deadlock.

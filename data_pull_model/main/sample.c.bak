@@ -1,0 +1,56 @@
+#include <stdlib.h>
+#include <stdio.h>
+
+#include <termios.h>
+#include <string.h>
+
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+static struct termios stored_settings;
+
+void set_keypressed (void) 
+{
+  struct termios new_settings;
+
+  tcgetattr (0, &stored_settings);
+
+  new_settings = stored_settings;
+  
+  new_settings.c_lflag &= (~ICANON);
+  new_settings.c_cc[VTIME] = 0;
+  new_settings.c_cc[VMIN] = 1;
+
+  tcsetattr (0, TCSANOW, &new_settings);
+  return;
+}
+
+void reset_keypressed (void)
+{
+  tcsetattr (0, TCSANOW, &stored_settings);
+  return;
+}
+
+
+int main () {
+
+  fd_set rfds;
+  struct timeval tv;
+  int retval;
+  char c;
+  set_keypressed ();
+  
+  FD_ZERO(&rfds);
+  FD_SET(0, &rfds);
+
+  printf ("Debut\n");
+  
+  select (1, &rfds, NULL, NULL, NULL);
+  c = getchar();
+  reset_keypressed ();
+  printf ("Key pressed !!\n");
+  printf ("Fin\n");
+  return 0;
+
+}

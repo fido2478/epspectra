@@ -1,0 +1,9 @@
+module FIT_RANGE_MOD:
+
+input My_Sample_Range;
+output output_sample_range;
+
+await immediate My_Sample_Range;
+await tick;
+emit output_sample_range;
+end module

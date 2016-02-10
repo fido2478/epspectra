@@ -1,0 +1,179 @@
+#############################
+#############################
+# FIXED PART - DO NOT TOUCH #
+#############################
+#############################
+
+#############################
+# made on 28 Aout 2000      #
+# Esterel code optimized    #
+#############################
+SPECTRA_BASE = .
+include Makefile.include
+
+TYPEDIR = include
+SOURCEDIR =source
+P_MODDIR =p_mod
+SINKDIR =sink
+FUNCDIR = submodule
+MAINDIR = main
+
+CCDIR = pspectra/cc
+VRCLSSDIR =pspectra/c++
+
+4v603	=
+
+INC= -I. -I$(TYPEDIR) -I$(PROCESSDIR) -I$(SOURCEDIR)  -I$(P_MODDIR)  -I$(SINKDIR) -I$(ENVDIR) -I$(FUNCDIR) -I$(CCDIR) -I$(VRCLSSDIR) -Lpspectra/cc/i386/lib/qt/lib -lqt -lm /usr/X11R6/lib/libX11.a /usr/X11R6/lib/libXext.a
+
+STRL= PERF_STRL$(4v603).strl \
+	$(SOURCEDIR)$(PATHSEP)SOURCE.strl \
+	$(P_MODDIR)$(PATHSEP)P_MOD.strl \
+	$(SINKDIR)$(PATHSEP)SINK.strl \
+	$(FUNCDIR)$(PATHSEP)INITIALIZE_SINK.strl \
+	$(FUNCDIR)$(PATHSEP)GET_SAMPLE_RANGE.strl \
+	$(FUNCDIR)$(PATHSEP)MARK_DATA.strl \
+	$(FUNCDIR)$(PATHSEP)MARK_DATA_SRC.strl \
+	$(FUNCDIR)$(PATHSEP)COMPUTE_DATA.strl \
+	$(FUNCDIR)$(PATHSEP)COMPUTE_DATA_SRC.strl 
+
+OBJECTS= PERF_STRL$(4v603)$(OBJ) \
+	PERF_STRL$(4v603)_data$(OBJ) \
+	$(TYPEDIR)$(PATHSEP)datatype_data$(OBJ)	\
+	$(SOURCEDIR)$(PATHSEP)SOURCE_data$(OBJ) \
+	$(P_MODDIR)$(PATHSEP)P_MOD_data$(OBJ) \
+	$(SINKDIR)$(PATHSEP)SINK_data$(OBJ) \
+	$(FUNCDIR)$(PATHSEP)INITIALIZE_SINK_data$(OBJ) \
+	$(FUNCDIR)$(PATHSEP)GET_SAMPLE_RANGE_data$(OBJ) \
+	$(FUNCDIR)$(PATHSEP)MARK_DATA_data$(OBJ) \
+	$(FUNCDIR)$(PATHSEP)COMPUTE_DATA_data$(OBJ) \
+	$(CCDIR)$(PATHSEP)interface$(OBJ) 
+
+VROBJECTS = $(VRCLSSDIR)/StrlBuffer$(OBJ) \
+	$(VRCLSSDIR)/StrlConnect$(OBJ) \
+	$(VRCLSSDIR)/StrlSigProc$(OBJ) \
+	$(VRCLSSDIR)/StrlMMX$(OBJ) \
+	$(VRCLSSDIR)/StrlComplex$(OBJ) \
+	$(VRCLSSDIR)/StrlCycleCount$(OBJ) \
+	$(VRCLSSDIR)/StrlPerfGraph$(OBJ) \
+	pspectra/cc/i386/lib/vrgui/VrGUI_int.o \
+	pspectra/cc/i386/lib/vrgui/VrGUIimp.o \
+	pspectra/cc/i386/lib/vrgui/moc_VrGUI_int.o
+#	$(VRCLSSDIR)/perf/libperfctr.o \
+
+SC_FILES= PERF_STRL$(4v603).sc \
+	$(SOURCEDIR)$(PATHSEP)SOURCE.sc \
+	$(P_MODDIR)$(PATHSEP)P_MOD.sc \
+	$(SINKDIR)$(PATHSEP)SINK.sc \
+	$(FUNCDIR)$(PATHSEP)INITIALIZE_SINK.sc \
+	$(FUNCDIR)$(PATHSEP)GET_SAMPLE_RANGE.sc \
+	$(FUNCDIR)$(PATHSEP)MARK_DATA.sc \
+	$(FUNCDIR)$(PATHSEP)MARK_DATA_SRC.sc \
+	$(FUNCDIR)$(PATHSEP)COMPUTE_DATA.sc \
+	$(FUNCDIR)$(PATHSEP)COMPUTE_DATA_SRC.sc
+
+SC_FILES1= PERF_STRL$(4v603).sc \
+	$(SOURCEDIR)$(PATHSEP)SOURCE.sc \
+	$(P_MODDIR)$(PATHSEP)P_MOD.sc \
+	$(SINKDIR)$(PATHSEP)SINK.sc \
+	$(FUNCDIR)$(PATHSEP)MARK_DATA.sc \
+	$(FUNCDIR)$(PATHSEP)COMPUTE_DATA.sc \
+	$(FUNCDIR)$(PATHSEP)GET_SAMPLE_RANGE.sc \
+	$(FUNCDIR)$(PATHSEP)INITIALIZE_SINK.sc 
+
+
+SC_FILES2= PERF_STRL$(4v603).sc \
+	$(SOURCEDIR)$(PATHSEP)SOURCE.sc \
+	$(P_MODDIR)$(PATHSEP)P_MOD.sc \
+	$(SINKDIR)$(PATHSEP)SINK.sc \
+	$(FUNCDIR)$(PATHSEP)INITIALIZE_SINK.sc 
+
+STRLDIRS = $(TYPEDIR) $(PROCESSDIR) $(SOURCEDIR) $(P_MODDIR) $(SUMMERDIR) $(SINKDIR) $(ENVDIR) $(FUNCDIR) $(CCDIR) $(VRCLSSDIR) $(MAINDIR)
+
+SCDIRS = $(FUNCDIR) $(SOURCEDIR) $(P_MODDIR) $(SINKDIR)
+
+all : sanity world a.out
+
+#####################################
+opt : world sub_opt Indiv_Opt ScLink opt.out
+
+opt1 : world sub_opt Mini_Opt ScLink1 opt.out
+
+opt2: world sub_opt Opt ScLink2 opt.out
+
+opt3 : world ic_level opt.out
+#####################################
+
+sub_opt:
+	$(ESTEREL_V603) -sc PERF_STRL.strl
+
+Mini_Opt:
+	for i in ${SCDIRS} ; do cd $$i ; $(MAKE) $@; cd ; cd project; done
+
+Indiv_Opt:
+	for i in ${SCDIRS} ; do cd $$i ; $(MAKE) $@; cd ; cd project; done
+
+Opt : 
+	for i in ${SCDIRS} ; do cd $$i ; $(MAKE) $@; cd ; cd project; done
+
+ic_level:
+	$(ESTEREL_V603) -blif -B PERF_STRL$(4v603) $(STRL)
+	$(AREAOPT_V603) PERF_STRL$(4v603)
+	$(BLIFSC_V603) -ctbl PERF_STRL$(4v603).ctbl PERF_STRL$(4v603).opt.blif > PERF_STRL$(4v603).sc
+	$(ESTEREL_V603) -causal PERF_STRL$(4v603).sc
+
+ScLink	:
+	$(SCLINK_V603) -nocopy $(SC_FILES) > PERF_STRL$(4v603)_sc.sc
+	$(ESTEREL_V603) -v -causal PERF_STRL$(4v603)_sc.sc -B PERF_STRL$(4v603)
+
+ScLink1	:
+	$(SCLINK_V603) -nocopy $(SC_FILES1) > PERF_STRL$(4v603)_sc.sc
+	$(ESTEREL_V603) -v -causal PERF_STRL$(4v603)_sc.sc -B PERF_STRL$(4v603)
+
+ScLink2 :
+	$(SCLINK_V603) -nocopy $(SC_FILES2) > PERF_STRL$(4v603)_sc.sc
+	$(ESTEREL_V603) -v -causal PERF_STRL$(4v603)_sc.sc -B PERF_STRL$(4v603)
+
+opt.out:	
+	$(CC) $(STRLFLAGS) -c PERF_STRL$(4v603).c
+	$(CC) $(STRLFLAGS) -c PERF_STRL$(4v603)_data.c -Ipspectra/cc
+	$(LINKER) $(LINKER_FLAGS) $(DEFINES) main/main_perf.o main/lib4main.o $(OBJECTS) $(VROBJECTS) $(INC) -lcurses -ltermcap $(CSIMUL_A)
+
+######################################
+
+a.out : 
+	$(CC) $(STRLFLAGS) -c PERF_STRL$(4v603).c
+	$(CC) $(STRLFLAGS) -c PERF_STRL$(4v603)_data.c -Ipspectra/cc
+	$(LINKER) $(LINKER_FLAGS) $(DEFINES) main/main_perf.o main/lib4main.o $(OBJECTS) $(VROBJECTS) $(INC) -lcurses -ltermcap $(CSIMUL_A)
+
+
+sanity : 
+	@echo "Sanity check..."
+	$(ESTEREL_V603) -causal $(STRL) -B PERF_STRL$(4v603)
+#	$(ESTEREL_COMMAND) -causal $(STRL) -B PERF_STRL
+
+c4strl : $(OBJ4STRL) 
+	for i in ${STRLDIRS} ; do cd $$i ; $(MAKE) $@; cd ; cd project; done 
+
+world : 
+	for i in ${STRLDIRS} ; do cd $$i ; $(MAKE) $@; cd ; cd project; done
+
+clean4strl : self-clean
+	for i in ${STRLDIRS} ; do cd $$i ; $(MAKE) $@; cd ; cd project; done 
+
+allclean : self-clean
+	for i in ${STRLDIRS} ; do cd $$i ; $(MAKE) $@; cd ; cd project; done
+
+clean : self-clean
+	for i in ${STRLDIRS} ; do cd $$i ; $(MAKE) $@; cd ; cd project; done
+
+self-clean:
+	$(RM)  PERF_STRL$(4v603).c PERF_STRL$(4v603)$(EXE) a.out $(OBJECTS) simul core *.sc *.ssc *.ctbl *.blif *.log *.o
+
+
+###############################################################
+# This part is backup
+##############################################################                 
+
+backup : 
+	tar -zcvf dsp1.tgz *
+	mv dsp1.tgz ~/BACKUP

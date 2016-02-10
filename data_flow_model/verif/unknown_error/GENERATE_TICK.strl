@@ -1,0 +1,15 @@
+%##########################################################
+%#  This is GENERATE_TICK module.
+%##########################################################
+
+module GENERATE_TICK:
+
+output shoot;
+
+%
+% body
+%
+
+emit shoot;
+
+end module

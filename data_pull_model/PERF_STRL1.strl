@@ -1,0 +1,212 @@
+%##########################################################
+%#  This optimized module is UDP_TX application.
+%##########################################################
+
+module PERF_STRL:
+
+type StrlSampleSize;
+type StrlSampleIndex;
+type StrlSampleRange;
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_SIZE : StrlSampleSize;
+constant INITIAL_RANGE : StrlSampleRange;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+constant OUT_RATE = 400000 : integer;
+constant IN_RATE = 2000 : integer;
+constant OUTPUT_SYMBOL_BITS = 4 : integer;
+constant AMPL = 80 : integer;
+constant NUM_SYMB = 16 : integer;
+constant CONST_NUM = 5 : integer;
+constant K = 2 : integer;
+constant ALPHA = 0.6f : float;
+constant CENTER_FREQ_MULT = 4 : integer;
+constant DEF_TPD = 2600.0f : float;
+
+input user_Quit;
+inputoutput SOURCE_SRANGE:StrlSampleRange;
+inputoutput CODER_SRANGE:StrlSampleRange;
+inputoutput MOD_SRANGE:StrlSampleRange;
+inputoutput SUMMER_SRANGE:StrlSampleRange;
+inputoutput SCOPESINK_SRANGE:StrlSampleRange;
+inputoutput SINK_SRANGE:StrlSampleRange;
+inputoutput SOURCE_MYMARKEDDATA:StrlSampleRange;
+inputoutput CODER_MYMARKEDDATA:StrlSampleRange;
+inputoutput MOD_MYMARKEDDATA:StrlSampleRange;
+inputoutput SUMMER_MYMARKEDDATA:StrlSampleRange;
+inputoutput SCOPESINK_MYMARKEDDATA:StrlSampleRange;
+inputoutput SINK_MYMARKEDDATA:StrlSampleRange;
+output Source_module:string;
+output Coder_module:string;
+output Mod_module:string;
+output Summer_module:string;
+output Scopesink_module:string;
+output Sink_module:string;
+
+function GET_SOURCE(string,integer):string;
+function GET_CODER(integer):string;
+function GET_MOD_F(integer,float,integer,integer,integer,integer,float,integer):string;
+function GET_SUMMER():string;
+function GET_SINK(string,integer):string;
+function GET_SCOPESINK_F(float,integer,integer,integer,integer):string;
+function CHOOSESINK(StrlSampleIndex,StrlSampleIndex):integer;
+function GETMARKEDWP(string):StrlSampleIndex;
+function GET_S_RANGE(string):StrlSampleRange;
+procedure CONNECT_MODULES()(string,string,integer);
+procedure INITIAL_SINK()(string);
+procedure INITGUI_MAIN_START()(); %{gui}%
+procedure RUN_GUI_MAIN()(); %{gui}%
+procedure INIT_PERF_GRAPH()(); %(perfgraph}%
+procedure START_PERF_GRAPH()();
+procedure STOP_PERF_GRAPH()();
+%
+% body part
+%
+signal mark_data_sink,mark_data_scopesink,
+       sig_port_1,sig_port_2,sig_port_3,sig_port_4,
+       ret_port_4:=0:integer,ret_port_3:=0:integer,ret_port_2:=0:integer,
+       ret_port_1:=0:integer,ret_port_c4:=0:integer,ret_port_c3:=0:integer,
+       ret_port_c2:=0:integer,ret_port_c1:=0:integer,
+       broadcast_compute:=0:integer,end_compute_sink:=0:integer in
+
+var nameofsource:string,nameofcoder:string,nameofmod:string,
+    nameofsummer:string,nameofscopesink:string,nameofsink:string,
+    WP_SINK:=INITIAL_INDEX:StrlSampleIndex,
+    WP_SCOPESINK:=INITIAL_INDEX:StrlSampleIndex in
+
+abort %[begin abort] for user_Quit
+
+%%%%%%%%%%%%%%%%%%%%%
+% create modules
+%%%%%%%%%%%%%%%%%%%%%
+  nameofsource:=GET_SOURCE("tmp.gz",1);
+  nameofcoder:=GET_CODER(OUTPUT_SYMBOL_BITS);
+  nameofmod:=GET_MOD_F(OUT_RATE/IN_RATE,65000.0f,AMPL,NUM_SYMB,CONST_NUM,K,ALPHA,CENTER_FREQ_MULT);
+  nameofsummer:=GET_SUMMER();
+  nameofscopesink:=GET_SCOPESINK_F(DEF_TPD/2.0f,-128,128,500,1);
+  nameofsink:=GET_SINK("138.96.251.3",5001);
+
+  emit Source_module(nameofsource);
+  emit Coder_module(nameofcoder);
+  emit Mod_module(nameofmod);
+  emit Summer_module(nameofsummer);
+  emit Scopesink_module(nameofscopesink);
+  emit Sink_module(nameofsink);
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make topology
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  call CONNECT_MODULES()(nameofscopesink,nameofmod,OUT_RATE);
+  call CONNECT_MODULES()(nameofsink,nameofsummer,OUT_RATE);
+  call CONNECT_MODULES()(nameofsummer,nameofmod,OUT_RATE);
+  call CONNECT_MODULES()(nameofmod,nameofcoder,IN_RATE);
+  call CONNECT_MODULES()(nameofcoder,nameofsource,IN_RATE*OUTPUT_SYMBOL_BITS/8);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% initialize parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%{  emit sink_name(nameofsink);}%
+  call INITIAL_SINK()(?Sink_module);
+  call INITIAL_SINK()(?Scopesink_module);
+
+  call INIT_PERF_GRAPH()();%{perfgraph}%
+  call START_PERF_GRAPH()();
+  call INITGUI_MAIN_START()(); %{gui}%
+  emit end_compute_sink(1);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% start scheduling
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[
+  loop
+   await immediate end_compute_sink;
+    call RUN_GUI_MAIN()();
+    WP_SCOPESINK:=GETMARKEDWP(nameofscopesink);
+    WP_SINK:=GETMARKEDWP(nameofsink);
+    pause;
+    if CHOOSESINK(WP_SINK,WP_SCOPESINK) >0 then
+       emit SCOPESINK_SRANGE(GET_S_RANGE(nameofscopesink));
+       emit mark_data_scopesink
+    else
+       emit SINK_SRANGE(GET_S_RANGE(nameofsink));
+       emit mark_data_sink
+    end if
+  end loop
+   ||
+  run source1/
+     SOURCE[signal Source_module/name;
+	    signal sig_port_4/start_mark;%{input port for data-mark}%
+	    signal SOURCE_SRANGE/input_sample_range;%{input data}%
+	    signal ret_port_4/My_return_value;%{output ret_val}%
+	    signal broadcast_compute/await_mark_sink;%{wait for ack of sink}%
+	    signal ret_port_c4/output_compute;%{compute}%
+	    signal SOURCE_MYMARKEDDATA/MyMarkedData%{compute}%]
+   ||
+   run coder/
+     P_MOD[signal Coder_module/name;
+	   signal sig_port_3/start_mark;%{input port for data-mark}%
+	   signal CODER_SRANGE/input_sample_range;%{input data}%
+	   signal sig_port_4/sig_for_upstream;%{output port}%
+	   signal SOURCE_SRANGE/Srange_for_upstream;%{output data}%
+	   signal ret_port_4/RET_From_UPstream;%{input ret_val}%
+	   signal ret_port_3/My_return_value;%{output ret_val}%
+	   signal ret_port_c4/input_compute;%{compute}%
+	   signal ret_port_c3/output_compute;%{compute}%
+	   signal CODER_MYMARKEDDATA/MyMarkedData%{compute}%]
+   ||
+   run digmod/
+      P_MOD[signal Mod_module/name;
+	    signal sig_port_2/start_mark;%{input port for data-mark}%
+	    signal MOD_SRANGE/input_sample_range;%{input data}%
+	    signal sig_port_3/sig_for_upstream;%{output port}%
+	    signal CODER_SRANGE/Srange_for_upstream;%{output data}%
+	    signal ret_port_3/RET_From_UPstream;%{input ret_val}%
+	    signal ret_port_2/My_return_value;%{output ret_val}%
+	    signal ret_port_c3/input_compute;%{compute}%
+	    signal ret_port_c2/output_compute;%{compute}%
+	    signal MOD_MYMARKEDDATA/MyMarkedData%{compute}%]
+   ||
+   run scopesink/
+      SINK[signal Scopesink_module/name;
+	   signal mark_data_scopesink/get_MARKDATA;
+	   signal SCOPESINK_SRANGE/S_RANGE; %{input data}%
+	   signal sig_port_2/sig_for_upstream; %{output port}%
+	   signal MOD_SRANGE/Srange_for_upstream; %{output data}%
+	   signal ret_port_2/RET_From_UPstream;%{input ret_val}%
+	   signal broadcast_compute/My_return_value;%{output ret_val}%
+	   signal ret_port_c2/input_compute;%{compute}%
+	   signal end_compute_sink/output_compute;%{compute}%
+	   signal SCOPESINK_MYMARKEDDATA/MyMarkedData%{compute}%]
+   ||
+   run summer/
+      P_MOD[signal Summer_module/name;
+	    signal sig_port_1/start_mark; %{input port for data-mark}%
+	    signal SUMMER_SRANGE/input_sample_range; %{input data}%
+	    signal sig_port_2/sig_for_upstream;%{output port}%
+	    signal MOD_SRANGE/Srange_for_upstream; %{output data}%
+	    signal ret_port_2/RET_From_UPstream;%{input ret_val}%
+	    signal ret_port_1/My_return_value;%{output ret_val}%
+	    signal ret_port_c2/input_compute;%{compute}%
+	    signal ret_port_c1/output_compute;%{compute}%
+	    signal SUMMER_MYMARKEDDATA/MyMarkedData%{compute}%]
+   ||   
+   run sink1/
+      SINK[signal Sink_module/name;
+	   signal mark_data_sink/get_MARKDATA;
+	   signal SINK_SRANGE/S_RANGE; %{input data}%
+	   signal sig_port_1/sig_for_upstream; %{output port}%
+	   signal SUMMER_SRANGE/Srange_for_upstream; %{output data}%
+	   signal ret_port_1/RET_From_UPstream;%{input ret_val}%
+	   signal broadcast_compute/My_return_value;%{output ret_val}%
+	   signal ret_port_c1/input_compute;%{compute}%
+	   signal end_compute_sink/output_compute;%{compute}%
+	   signal SINK_MYMARKEDDATA/MyMarkedData%{compute}%]
+]
+
+when immediate user_Quit;
+end var 
+end signal
+end module

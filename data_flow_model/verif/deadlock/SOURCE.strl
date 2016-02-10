@@ -1,0 +1,26 @@
+%#############################################################
+% Source module
+% There is no time-delay between marking and computing method.
+% ############################################################
+
+module SOURCE:
+
+input Ack_From_Down;
+output E_Mark_to_Down;%{notify my mark finished to down}%
+output E_Compute_to_Down;%{trigger compute method of downstream}%
+input snooping;
+%
+%  body part
+%
+
+%var INITIAL_FLAG:=true:boolean in
+   every immediate Ack_From_Down do
+      run MARK_DATA;
+      emit E_Mark_to_Down;
+      
+      run COMPUTE_DATA;
+      run TIMER[signal snooping/set_on];
+      emit E_Compute_to_Down;
+   end every
+%end var
+end module

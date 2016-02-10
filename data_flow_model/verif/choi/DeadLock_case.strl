@@ -1,0 +1,16 @@
+module tis:
+output o1,o2,t1,t2;
+input i1,i2;
+
+loop
+   emit o1;
+   await o2; 
+   emit t1
+each i1
+||
+loop
+   emit o2;
+   await o1; 
+   emit t2
+each i2
+end module

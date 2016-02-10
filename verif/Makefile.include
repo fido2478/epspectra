@@ -1,0 +1,55 @@
+ifneq (,)
+This makefile requires GNU Make.
+endif
+
+######################################################
+# CONFIGURATION for ESTEREL
+######################################################
+
+ESTEREL_V592	= esterel
+ESTEREL_V601	= esterelv6
+ESTEREL_V603	= esterelv6_03-3
+SAXORT		= strl_compil
+ESTEREL		= $(ESTEREL_V603)
+XES		= xes
+XEVE		= xeve
+REMLATCH	= remlatch
+SCLINK		= sclink
+SCLINK_V603	= sclinkv6_03-3
+AREAOPT		= areaopt
+BLIFOPT 	= blifopt
+BLIFSSC 	= blifssc
+BLIFSC_V603	= blifscv6_03-3
+BLIFSC_V6	= blifscv6
+BLIFSC		= $(BLIFSC_V603)
+DDDXES		= dddxes
+IFLAG		= -I
+ICHECK		= -Icheck
+CAUSAL		= -causal
+SIMUL		= -simul
+STRL_NAMING	= -B $@
+CYCL_SIMUL	= $(CAUSAL) $(SIMUL)
+CYCL_EXE	= $(CAUSAL)
+TEST_EXE	=
+
+######################################################
+# C/C++ COMPILE OPTION
+######################################################
+
+GPROF		= 
+#-pg -p
+DBUG		= 
+OPTIMA		= -O
+NAMING_DES	= -o $@
+CC		= cc $(DBUG) $(GPROF) $(OPTIMA)
+C++		= g++ $(DBUG) $(GPROF) $(OPTIMA)
+G++		= $(C++)
+C2O		= $(CC) -c 
+LINKER      	= $(C++)
+LINKER_FLAGS	= -o $@
+CP		= cp
+RM		= rm -f
+MV		= mv
+MAKE		= make
+OBJ		= .o
+EXE		= .exe

@@ -1,0 +1,209 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission. 
+%
+
+%##########################################################
+%#  This module is downlink application with data flow model.
+%##########################################################
+
+module PERF_DNLINK:
+
+type VrSampleRange;
+type UnsignedLL;
+type UnsignedLong;
+%type StrlString;
+constant INITIAL_RANGE:VrSampleRange;
+constant INITIAL_UNSIGNEDLL:UnsignedLL;
+%constant INITIAL_STRING:StrlString;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+constant RATE1 = 32000 : integer; %{160*50*4}%
+constant RATE2 = 6600 : integer; %{33*50*4}%
+constant RATE3 = 91200: integer; %{456*50*4}%
+constant RATE4 = 118400: integer; %{592*50*4}%
+constant RATE5 = 177600: integer; %{148*6*50*4}%
+
+input on_TimeConstraint:integer;
+%{input IP_Addr:string;}%
+input User_Quit;
+input InitRange:VrSampleRange; %{0 1600}%
+inputoutput FileSource_module:string;
+inputoutput SpeechCoder_module:string;
+inputoutput ChannelCoder_module:string;
+inputoutput Interleaver_module:string;
+inputoutput Cipher_module:string;
+inputoutput Modulator_module:string;
+inputoutput FileSink_module:string;
+%{inputoutput UDPSink_module:string;}%
+%{
+output FileSource_COMPUTEDSR:VrSampleRange;
+output SpeechCoder_COMPUTESR:VrSampleRange;
+output ChannelCoder_COMPUTESR:VrSampleRange;
+output Interleaver_COMPUTEDSR:VrSampleRange;
+output Cipher_COMPUTESR:VrSampleRange;
+output Modulator_COMPUTESR:VrSampleRange;
+output UDPSink_COMPUTEDSR:VrSampleRange;
+}%
+function GET_FILESOURCE(string,integer):string;
+function GET_SPEECHCODER():string;
+function GET_CHANNELCODER():string;
+function GET_INTERLEAVER():string;
+function GET_CIPHER():string;
+function GET_MODULATOR():string;
+function GET_FILESINK(string):string;
+%{function GET_UDPSINK()(string,integer):string;}%
+
+procedure CONNECT_MODULES()(string,string,integer,integer);
+procedure INITIAL_SINK()(string);
+procedure INIT_PERF_GRAPH()();%(perfgraph}%
+procedure START_PERF_GRAPH()();%(perfgraph}%
+procedure STOP_PERF_GRAPH()();%(perfgraph}%
+%
+% body part
+%
+signal Mark_src2spcoder:=INITIAL_RANGE:VrSampleRange, 
+       Mark_spcoder2chcoder:=INITIAL_RANGE:VrSampleRange,
+       Mark_chcoder2inleaver:=INITIAL_RANGE:VrSampleRange, 
+       Mark_inleaver2cipher:=INITIAL_RANGE:VrSampleRange, 
+       Mark_cipher2mod:=INITIAL_RANGE:VrSampleRange, 
+       Mark_mod2snk:=INITIAL_RANGE:VrSampleRange, 
+       Compute_src2spcoder, Compute_spcoder2chcoder, Compute_chcoder2inleaver,
+       Compute_inleaver2cipher, Compute_cipher2mod, Compute_mod2snk,
+       Ack_snk2mod:=INITIAL_RANGE:VrSampleRange, 
+       Ack_mod2cipher:=INITIAL_RANGE:VrSampleRange, 
+       Ack_cipher2inleaver:=INITIAL_RANGE:VrSampleRange, 
+       Ack_inleaver2chcoder:=INITIAL_RANGE:VrSampleRange, 
+       Ack_chcoder2spcoder:=INITIAL_RANGE:VrSampleRange, 
+       Ack_spcoder2src:=INITIAL_RANGE:VrSampleRange, 
+       RDV_snk2mod, RDV_mod2cipher, RDV_cipher2inleaver, 
+       RDV_inleaver2chcoder, RDV_chcoder2spcoder, RDV_spcoder2src,Ready2Receive in
+%%%%%%%%%%%%%%%%%%%%%
+% create modules
+%%%%%%%%%%%%%%%%%%%%%
+abort
+%{   await IP_Addr;}%
+   emit FileSource_module(GET_FILESOURCE("test.au",0));
+   emit SpeechCoder_module(GET_SPEECHCODER());
+   emit ChannelCoder_module(GET_CHANNELCODER());
+   emit Interleaver_module(GET_INTERLEAVER());
+   emit Cipher_module(GET_CIPHER());
+   emit Modulator_module(GET_MODULATOR());
+   emit FileSink_module(GET_FILESINK("cplx.out"));
+%{   emit UDPSink_module(GET_UDPSINK()(?IP_Addr,5001));}%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make topology
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%{  call CONNECT_MODULES()(?UDPSink_module,?Modulator_module,RATE5,8);}%
+  call CONNECT_MODULES()(?FileSink_module,?Modulator_module,RATE5,8);
+  call CONNECT_MODULES()(?Modulator_module,?Cipher_module,RATE4,8);
+  call CONNECT_MODULES()(?Cipher_module,?Interleaver_module,RATE4,8);
+  call CONNECT_MODULES()(?Interleaver_module,?ChannelCoder_module,RATE3,8);
+  call CONNECT_MODULES()(?ChannelCoder_module,?SpeechCoder_module,RATE2,8);
+  call CONNECT_MODULES()(?SpeechCoder_module,?FileSource_module,RATE1,8);
+
+  call INITIAL_SINK()(?FileSink_module);
+  call INIT_PERF_GRAPH()();%{perfgraph should follow sinks}%
+  await InitRange;
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% initialize parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  [
+     call START_PERF_GRAPH()();
+     emit Ack_spcoder2src(?InitRange);
+   ||
+     run FileSource/
+    SOURCE[signal FileSource_module/Name;
+	   signal Mark_src2spcoder/E_Mark_to_Down;%{mark1}%
+	   signal Compute_src2spcoder/E_Compute_to_Down;
+	   signal Ack_spcoder2src/Ack_From_Down;
+	   signal RDV_spcoder2src/snooping%{;
+	   signal FileSource_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run SpeechCoder/
+    P_MOD[signal SpeechCoder_module/Name;
+	  signal Mark_src2spcoder/S_Mark_from_Up;%{mark1}%
+	  signal Compute_src2spcoder/S_Compute_from_Up;%{}%
+	  signal Ack_spcoder2src/Ack_to_Up;%{}%
+	  signal RDV_spcoder2src/sig_on;%{}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_spcoder2chcoder/E_Mark_to_Down;%{mark2}%
+	  signal Compute_spcoder2chcoder/E_Compute_to_Down;%{wire2}%
+	  signal Ack_chcoder2spcoder/Ack_From_Down;%{wire3}%
+	  signal RDV_chcoder2spcoder/snooping%{;
+	  signal SpeechCoder_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run ChannelCoder/
+    P_MOD[signal ChannelCoder_module/Name;
+	  signal Mark_spcoder2chcoder/S_Mark_from_Up;%{mark2}%
+	  signal Compute_spcoder2chcoder/S_Compute_from_Up;%{wire2}%
+	  signal Ack_chcoder2spcoder/Ack_to_Up;%{wire3}%
+	  signal RDV_chcoder2spcoder/sig_on;%{wire4}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_chcoder2inleaver/E_Mark_to_Down;%{snk1}%
+	  signal Compute_chcoder2inleaver/E_Compute_to_Down;%{}%
+	  signal Ack_inleaver2chcoder/Ack_From_Down;%{from sink1}%
+	  signal RDV_inleaver2chcoder/snooping%{;
+	  signal ChannelCoder_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run Interleaver/
+    P_MOD[signal Interleaver_module/Name;
+	  signal Mark_chcoder2inleaver/S_Mark_from_Up;%{mark2}%
+	  signal Compute_chcoder2inleaver/S_Compute_from_Up;%{wire2}%
+	  signal Ack_inleaver2chcoder/Ack_to_Up;%{wire3}%
+	  signal RDV_inleaver2chcoder/sig_on;%{wire4}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_inleaver2cipher/E_Mark_to_Down;%{snk1}%
+	  signal Compute_inleaver2cipher/E_Compute_to_Down;%{}%
+	  signal Ack_cipher2inleaver/Ack_From_Down;%{fromur sink1}%
+	  signal RDV_cipher2inleaver/snooping%{;
+	  signal Interleaver_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run Cipher/
+    P_MOD[signal Cipher_module/Name;
+	  signal Mark_inleaver2cipher/S_Mark_from_Up;%{mark2}%
+	  signal Compute_inleaver2cipher/S_Compute_from_Up;%{wire2}%
+	  signal Ack_cipher2inleaver/Ack_to_Up;%{wire3}%
+	  signal RDV_cipher2inleaver/sig_on;%{wire4}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_cipher2mod/E_Mark_to_Down;%{snk1}%
+	  signal Compute_cipher2mod/E_Compute_to_Down;%{}%
+	  signal Ack_mod2cipher/Ack_From_Down;%{from sink1}%
+	  signal RDV_mod2cipher/snooping%{;
+	  signal Cipher_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run Modulator/
+    P_MOD[signal Modulator_module/Name;
+	  signal Mark_cipher2mod/S_Mark_from_Up;%{mark2}%
+	  signal Compute_cipher2mod/S_Compute_from_Up;%{wire2}%
+	  signal Ack_mod2cipher/Ack_to_Up;%{wire3}%
+	  signal RDV_mod2cipher/sig_on;%{wire4}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_mod2snk/E_Mark_to_Down;%{snk1}%
+	  signal Compute_mod2snk/E_Compute_to_Down;%{}%
+	  signal Ack_snk2mod/Ack_From_Down;%{from sink1}%
+	  signal RDV_snk2mod/snooping%{;
+	  signal Modulator_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run FileSink/
+    SINK[signal FileSink_module/Name;
+	 signal Mark_mod2snk/S_Mark_from_Up;%{snk2}%
+	 signal Compute_mod2snk/S_Compute_from_Up;
+	 signal Ack_snk2mod/Ack_to_Up;
+	 signal RDV_snk2mod/sig_on;
+	 signal Ready2Receive/Ready2Receive%{;
+	 signal FileSink_COMPUTEDSR/ComputedSRange}%];
+   ]
+when User_Quit
+end signal
+end module

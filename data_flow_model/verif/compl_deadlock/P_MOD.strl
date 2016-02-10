@@ -1,0 +1,54 @@
+%################################
+%   P_MOD module 
+%################################
+
+module P_MOD:
+
+input S_Mark_from_Up;%{set timer on}%
+input Ack_From_Down;%{start to my mark method}%
+output E_Mark_to_Down;%{notify my mark finished to down}%
+input S_Compute_from_Up;%{trigger my compute method}%
+output E_Compute_to_Down;%{trigger compute method of downstream}%
+output Ack_to_Up;%{inform the upstream of finishing computing}%
+input snooping;
+output sig_on; %{trigger TIMER on the upstream}%
+
+%
+%  body part
+%
+
+var INI_FLAG:=true:boolean in
+signal switch_on, switch_off in
+   [
+      loop
+	 emit switch_on;
+	 if INI_FLAG then
+	    INI_FLAG:=false;
+	    await S_Mark_from_Up
+	 else
+	    run WAIT_SIG[signal S_Mark_from_Up/IN1;
+			 signal Ack_From_Down/IN2]
+	 end if;
+	 run MARK_DATA;
+	 [
+	 emit E_Mark_to_Down
+         ||
+	 emit switch_off
+	 ];
+	 await immediate S_Compute_from_Up;
+	 run COMPUTE_DATA;
+	 run TIMER[signal snooping/set_on];
+	 [
+	 emit Ack_to_Up
+         ||
+	 emit E_Compute_to_Down
+         ]
+      end loop
+   ||
+      run SWITCH[signal switch_on/On;
+		 signal switch_off/Off;
+		 signal sig_on/On_Signal]
+   ]
+end signal
+end var
+end module

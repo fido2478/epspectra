@@ -1,0 +1,273 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission. 
+%
+
+
+%##########################################################
+%#  This module is uplink of gsm application with data flow model.
+%##########################################################
+
+module UPLINK:
+
+type StrlSampleRange;
+type UnsignedLL;
+type UnsignedLong;
+
+constant INITIAL_RANGE:StrlSampleRange;
+%constant START_RANGE:StrlSampleRange;
+constant INITIAL_UNSIGNEDLL:UnsignedLL;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+constant RATE1 = 8000 : integer; %{160*50}%
+constant RATE2 = 1650 : integer; %{33*50}%
+constant RATE3 = 22800: integer; %{456*50}%
+constant RATE4 = 29600: integer; %{592*50}%
+constant RATE5 = 44400: integer; %{148*6*50}%
+
+input on_TimeConstraint:integer;
+input User_Quit;
+input InitRange:StrlSampleRange;%{}%
+inputoutput UDPSource_module:string;
+inputoutput Demodulator_module:string;
+inputoutput Decipher_module:string;
+inputoutput DeInterleaver_module:string;
+inputoutput ChannelDecoder_module:string;
+inputoutput SpeechDecoder_module:string;
+inputoutput AudioSink_module:string;
+%{
+output UDPSource_COMPUTEDSR:StrlSampleRange;
+output Demodulator_COMPUTESR:StrlSampleRange;
+output Decipher_COMPUTESR:StrlSampleRange;
+output DeInterleaver_COMPUTEDSR:StrlSampleRange;
+output ChannelDecoder_COMPUTESR:StrlSampleRange;
+output SpeechDecoder_COMPUTESR:StrlSampleRange;
+output AudioSink_COMPUTEDSR:StrlSampleRange;
+}%
+
+output VIOLATED_DeadlockFreedom;
+output VIOLATED_Liveness;
+output VIOLATED_Correctness;
+
+function GET_UDPSOURCE(integer):string;
+function GET_DEMODULATOR():string;
+function GET_DECIPHER():string;
+function GET_DEINTERLEAVER():string;
+function GET_CHANNELDECODER():string;
+function GET_SPEECHDECODER():string;
+function GET_AUDIOSINK():string;
+
+procedure CONNECT_MODULES()(string,string,integer,integer);
+procedure INITIAL_SINK()(string);
+%
+% body part
+%
+signal Mark_src2demod:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_demod2decipher:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_decipher2deinleaver:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_deinleaver2chdecoder:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_chdecoder2spdecoder:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_spdecoder2snk:=INITIAL_RANGE:StrlSampleRange, 
+       Compute_src2demod, Compute_demod2decipher,
+       Compute_decipher2deinleaver, Compute_deinleaver2chdecoder, 
+       Compute_chdecoder2spdecoder, Compute_spdecoder2snk,
+       Ack_snk2spdecoder:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_spdecoder2chdecoder:=INITIAL_RANGE:StrlSampleRange,
+       Ack_chdecoder2deinleaver:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_deinleaver2decipher:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_decipher2demod:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_demod2src:=INITIAL_RANGE:StrlSampleRange, 
+       Speechdecoder_Ready, Channeldecoder_Ready,
+       Deinterleaver_Ready,Decipher_Ready,Demodulator_Ready,Sink_Ready,
+       RDV_snk2spdecoder, RDV_spdecoder2chdecoder,
+       RDV_chdecoder2deinleaver, RDV_deinleaver2decipher, 
+       RDV_decipher2demod, RDV_demod2src,Ready2Receive,
+       speechdecoder_in:=INITIAL_RANGE:StrlSampleRange,
+       channeldecoder_in:=INITIAL_RANGE:StrlSampleRange,
+       deinterleaver_in:=INITIAL_RANGE:StrlSampleRange,
+       demodulator_in:=INITIAL_RANGE:StrlSampleRange,
+       decipher_in:=INITIAL_RANGE:StrlSampleRange in
+%%%%%%%%%%%%%%%%%%%%%
+% create modules
+%%%%%%%%%%%%%%%%%%%%%
+abort
+   emit UDPSource_module(GET_UDPSOURCE(5001));
+   emit Demodulator_module(GET_DEMODULATOR());
+   emit Decipher_module(GET_DECIPHER());
+   emit DeInterleaver_module(GET_DEINTERLEAVER());
+   emit ChannelDecoder_module(GET_CHANNELDECODER());
+   emit SpeechDecoder_module(GET_SPEECHDECODER());
+   emit AudioSink_module(GET_AUDIOSINK());
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make topology
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  call CONNECT_MODULES()(?AudioSink_module,?SpeechDecoder_module,RATE1,8);
+  call CONNECT_MODULES()(?SpeechDecoder_module,?ChannelDecoder_module,RATE2,8);
+  call CONNECT_MODULES()(?ChannelDecoder_module,?DeInterleaver_module,RATE3,8);
+  call CONNECT_MODULES()(?DeInterleaver_module,?Decipher_module,RATE4,8);
+  call CONNECT_MODULES()(?Decipher_module,?Demodulator_module,RATE4,8);
+  call CONNECT_MODULES()(?Demodulator_module,?UDPSource_module,RATE5,8);
+
+  call INITIAL_SINK()(?AudioSink_module);
+  await InitRange;
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% initialize parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  [
+     emit Ack_demod2src(?InitRange);
+   ||
+     run UDPSource/
+    SOURCE[signal UDPSource_module/Name;
+	   signal Mark_src2demod/E_Mark_to_Down;%{mark1}%
+	   signal Compute_src2demod/E_Compute_to_Down;
+	   signal Ack_demod2src/Ack_From_Down;
+	   signal RDV_demod2src/snooping%{;
+	   signal UDPSource_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run Demodulator/
+    P_MOD[signal Demodulator_module/Name;
+	  signal Mark_src2demod/S_Mark_from_Up;%{mark2}%
+	  signal Compute_src2demod/S_Compute_from_Up;%{wire2}%
+	  signal Ack_demod2src/Ack_to_Up;%{wire3}%
+	  signal RDV_demod2src/sig_on;%{wire4}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_demod2decipher/E_Mark_to_Down;%{snk1}%
+	  signal Compute_demod2decipher/E_Compute_to_Down;%{}%
+	  signal Ack_decipher2demod/Ack_From_Down;%{from sink1}%
+	  signal RDV_decipher2demod/snooping%{;
+	  signal Demodulator_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run Decipher/
+    P_MOD[signal Decipher_module/Name;
+	  signal Mark_demod2decipher/S_Mark_from_Up;%{mark2}%
+	  signal Compute_demod2decipher/S_Compute_from_Up;%{wire2}%
+	  signal Ack_decipher2demod/Ack_to_Up;%{wire3}%
+	  signal RDV_decipher2demod/sig_on;%{wire4}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_decipher2deinleaver/E_Mark_to_Down;%{snk1}%
+	  signal Compute_decipher2deinleaver/E_Compute_to_Down;%{}%
+	  signal Ack_deinleaver2decipher/Ack_From_Down;%{from sink1}%
+	  signal RDV_deinleaver2decipher/snooping%{;
+	  signal Decipher_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run DeInterleaver/
+    P_MOD[signal DeInterleaver_module/Name;
+	  signal Mark_decipher2deinleaver/S_Mark_from_Up;%{mark2}%
+	  signal Compute_decipher2deinleaver/S_Compute_from_Up;%{wire2}%
+	  signal Ack_deinleaver2decipher/Ack_to_Up;%{wire3}%
+	  signal RDV_deinleaver2decipher/sig_on;%{wire4}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_deinleaver2chdecoder/E_Mark_to_Down;%{snk1}%
+	  signal Compute_deinleaver2chdecoder/E_Compute_to_Down;%{}%
+	  signal Ack_chdecoder2deinleaver/Ack_From_Down;%{from sink1}%
+	  signal RDV_chdecoder2deinleaver/snooping%{;
+	  signal DeInterleaver_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run ChannelDecoder/
+    P_MOD[signal ChannelDecoder_module/Name;
+	  signal Mark_deinleaver2chdecoder/S_Mark_from_Up;%{mark2}%
+	  signal Compute_deinleaver2chdecoder/S_Compute_from_Up;%{wire2}%
+	  signal Ack_chdecoder2deinleaver/Ack_to_Up;%{wire3}%
+	  signal RDV_chdecoder2deinleaver/sig_on;%{wire4}%
+	  signal Mark_chdecoder2spdecoder/E_Mark_to_Down;%{snk1}%
+	  signal Compute_chdecoder2spdecoder/E_Compute_to_Down;%{}%
+	  signal Ack_spdecoder2chdecoder/Ack_From_Down;%{from sink1}%
+	  signal RDV_spdecoder2chdecoder/snooping%{;
+	  signal ChannelDecoder_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run SpeechDecoder/
+    P_MOD[signal SpeechDecoder_module/Name;
+	  signal Mark_chdecoder2spdecoder/S_Mark_from_Up;%{mark2}%
+	  signal Compute_chdecoder2spdecoder/S_Compute_from_Up;%{wire2}%
+	  signal Ack_spdecoder2chdecoder/Ack_to_Up;%{wire3}%
+	  signal RDV_spdecoder2chdecoder/sig_on;%{wire4}%
+	  signal Ready2Receive/Ready2Receive;
+	  signal Mark_spdecoder2snk/E_Mark_to_Down;%{snk1}%
+	  signal Compute_spdecoder2snk/E_Compute_to_Down;%{}%
+	  signal Ack_snk2spdecoder/Ack_From_Down;%{from sink1}%
+	  signal RDV_snk2spdecoder/snooping%{;
+	  signal SpeechDecoder_COMPUTEDSR/ComputedSRange}%];
+   ||
+      run AudioSink/
+    SINK[signal AudioSink_module/Name;
+	 signal Mark_spdecoder2snk/S_Mark_from_Up;%{snk2}%
+	 signal Compute_spdecoder2snk/S_Compute_from_Up;
+	 signal Ack_snk2spdecoder/Ack_to_Up;
+	 signal RDV_snk2spdecoder/sig_on;
+	 signal Ready2Receive/Ready2Receive%{;
+	 signal AudioSink_COMPUTEDSR/ComputedSRange}%];
+   ||
+%{checking safetyness property}%
+      run safety1/
+    DEADLOCK_FREE[signal Speechdecoder_Ready/Iy, Compute_chdecoder2spdecoder/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety2/
+    DEADLOCK_FREE[signal Channeldecoder_Ready/Iy,Compute_deinleaver2chdecoder/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety3/
+    DEADLOCK_FREE[signal Deinterleaver_Ready/Iy,Compute_decipher2deinleaver/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety4/
+    DEADLOCK_FREE[signal Decipher_Ready/Iy,Compute_demod2decipher/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety5/
+    DEADLOCK_FREE[signal Demodulator_Ready/Iy,Compute_src2demod/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety6/
+    DEADLOCK_FREE[signal Sink_Ready/Iy,Compute_spdecoder2snk/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+%{checking correctness property}%
+     run correctness/
+    CHECK_OUTPUT[signal Ack_demod2src/Ix,Ack_snk2spdecoder/Iy,
+                VIOLATED_Correctness/VIOLATED_s]
+   ||
+%{checking liveness property}%
+     run CONVERTOR1[signal Mark_chdecoder2spdecoder/IN1,Ack_snk2spdecoder/IN2,speechdecoder_in/OUT]
+   ||
+     run liveness_speechdecoder/
+    B_LIVENESS[signal speechdecoder_in/Ix,Ack_spdecoder2chdecoder/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_deinleaver2chdecoder/IN1,Ack_spdecoder2chdecoder/IN2,channeldecoder_in/OUT]
+   ||
+     run liveness_channeldecoder/
+    B_LIVENESS[signal channeldecoder_in/Ix,Ack_chdecoder2deinleaver/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_decipher2deinleaver/IN1,Ack_chdecoder2deinleaver/IN2,deinterleaver_in/OUT]
+   ||
+     run liveness_deinterleaver/
+    B_LIVENESS[signal deinterleaver_in/Ix,Ack_deinleaver2decipher/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_demod2decipher/IN1,Ack_deinleaver2decipher/IN2,decipher_in/OUT]
+   ||
+     run liveness_decipher/
+    B_LIVENESS[signal decipher_in/Ix, Ack_decipher2demod/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_src2demod/IN1,Ack_decipher2demod/IN2,demodulator_in/OUT]
+   ||
+     run liveness_demodulator/
+    B_LIVENESS[signal demodulator_in/Ix, Ack_demod2src/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ]
+when User_Quit
+end signal
+end module

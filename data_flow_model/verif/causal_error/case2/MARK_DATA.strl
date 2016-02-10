@@ -1,0 +1,146 @@
+%##########################################################
+%#  This module is to control Mark_Data modules.
+%##########################################################
+
+module MARK_DATA:
+
+type StrlSampleRange;
+type StrlSampleIndex;
+type Debug4Var;
+type UnsignedInt;
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_RANGE : StrlSampleRange;
+constant INITIAL_DEBUG4VAR : Debug4Var;
+constant INITIAL_UNSIGNEDINT : UnsignedInt;
+
+input name_module : string;
+input sample_range : StrlSampleRange;
+input retVal_from_upstream : integer; %{return value from upstream }%
+output return_value : integer; %{return value for itself to return}%
+output call_upstream; %{Signal to activate upstream modules}%
+output forecastrange :StrlSampleRange; %{SampleRange to be passed to upstream}%
+
+output debug_temp:Debug4Var;
+
+
+function GETMARKEDWP(string):StrlSampleIndex;
+function GETWP(string):StrlSampleIndex;
+function GET_OUTPUTSIZE(string):UnsignedInt;
+function ADD_INDEX_SIZE(StrlSampleRange):StrlSampleIndex;
+function CMPSAMPLEINDEX(StrlSampleIndex,StrlSampleIndex):integer;
+function CMPSAMPLEINDEX1(StrlSampleIndex,StrlSampleIndex):integer;
+function GETINDEX(StrlSampleRange):StrlSampleIndex;
+function SUBTRACT_A_B(StrlSampleIndex,StrlSampleIndex):integer;
+function ROUNDUP_REQUESTSIZE (integer,UnsignedInt):integer;
+function SET_SAMPLERANGE(StrlSampleIndex,integer):StrlSampleRange;
+function GET_NUMBERINPUTS(string):integer;
+function FORECASTS(StrlSampleRange,string):StrlSampleRange;
+function REAL_MARK_DATA(StrlSampleIndex,integer,integer,StrlSampleRange,string):integer;
+function DEBUG_INDEX(string,StrlSampleIndex):Debug4Var;
+function DEBUG_RANGE(string,StrlSampleRange):Debug4Var;
+function DEBUG_INT(string,integer):Debug4Var;
+function DEBUG_UNINT(string,UnsignedInt):Debug4Var;
+
+%
+% body part
+%
+
+
+var testrange:=INITIAL_RANGE:StrlSampleRange,
+    MY_Sample_Range:=INITIAL_RANGE:StrlSampleRange,
+    MY_Module_Name:string,
+    pendingWP:=INITIAL_INDEX:StrlSampleIndex,
+    desiredWP:=INITIAL_INDEX:StrlSampleIndex,
+    requestSize:=0:integer,
+    Flag:=0:integer,
+    dataMarkedUpstream:=0:integer, 
+    dataNotReadyUpstream:=0:integer,
+    temp_int:=0:integer,
+    temp_var:=INITIAL_DEBUG4VAR:Debug4Var,
+    temp_index:=INITIAL_INDEX:StrlSampleIndex,
+    temp_unsigned:=INITIAL_UNSIGNEDINT:UnsignedInt in
+
+   trap EXIT_FUNC in
+      [
+	 await immediate name_module;
+	 MY_Module_Name:=?name_module;
+      ||
+	 await immediate sample_range;
+	 MY_Sample_Range:=?sample_range;
+      ];
+      pendingWP:=GETMARKEDWP(MY_Module_Name);
+      desiredWP:=ADD_INDEX_SIZE(MY_Sample_Range);
+      if CMPSAMPLEINDEX1(desiredWP,GETWP(MY_Module_Name))<=0 then
+	 await tick;
+	 emit return_value(2);
+	 emit debug_temp(DEBUG_INT("return value",2));
+	 exit EXIT_FUNC
+      end if;
+      await tick;%{This saves causalty error}%
+      if CMPSAMPLEINDEX(pendingWP,GETINDEX(MY_Sample_Range))<0 then
+	 await tick;
+	 emit return_value(-1);
+	 emit debug_temp(DEBUG_INT("return value",-1));
+	 exit EXIT_FUNC
+      end if;      
+      requestSize:=SUBTRACT_A_B(desiredWP,pendingWP);
+      if requestSize <= 0 then
+	 await tick;
+	 emit return_value(-2);
+	 emit debug_temp(DEBUG_INT("return value",-2));
+	 exit EXIT_FUNC
+      end if;
+
+      temp_unsigned:=GET_OUTPUTSIZE(MY_Module_Name);
+
+      requestSize:=ROUNDUP_REQUESTSIZE (requestSize,temp_unsigned);
+
+      testrange:=SET_SAMPLERANGE(pendingWP,requestSize);
+      if GET_NUMBERINPUTS(MY_Module_Name)>0 then %{begin if - source skips this}%
+	 emit forecastrange(FORECASTS(testrange,MY_Module_Name));
+	 abort
+	    sustain call_upstream
+	 when immediate retVal_from_upstream;
+%{	 await tick;}%
+	 
+	 Flag:=?retVal_from_upstream;
+	 if Flag = 1 then
+	    if dataNotReadyUpstream<>0 then
+	       await tick;
+	       emit return_value(0);
+	       emit debug_temp(DEBUG_INT("return value",0));
+	       exit EXIT_FUNC
+	    end if;
+	    %{ conformity is omitted }%
+	    dataMarkedUpstream:=1;
+	 elsif Flag = 0 then 
+	    await tick;
+	    emit return_value(0);
+	    emit debug_temp(DEBUG_INT("return value",0));
+	    exit EXIT_FUNC
+	 elsif Flag = -1 then
+	    dataNotReadyUpstream:=-1
+	 elsif Flag = -2 then
+	    if dataNotReadyUpstream=0 
+	    else
+	       dataNotReadyUpstream:=-2
+	    end if;
+	 end if;
+      end if; %{end if}%
+
+      if dataNotReadyUpstream<>0 then
+	 await tick;
+	 emit return_value(dataNotReadyUpstream);
+	 emit debug_temp(DEBUG_INT("return value",dataNotReadyUpstream));
+	 exit EXIT_FUNC
+      end if;
+
+      temp_int:=REAL_MARK_DATA(pendingWP,requestSize,dataMarkedUpstream,?forecastrange,MY_Module_Name);
+      await tick;
+      emit return_value(temp_int);
+      emit debug_temp(DEBUG_INT("return value",temp_int));
+   end trap;
+%{   await tick;}%
+end var
+end module

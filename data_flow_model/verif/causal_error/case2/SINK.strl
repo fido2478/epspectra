@@ -1,0 +1,93 @@
+%
+%   SINK module 
+%
+
+module SINK:
+
+type StrlSampleSize;
+type StrlSampleIndex;
+type StrlSampleRange;
+type Debug4Var;
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_SIZE : StrlSampleSize;
+constant INITIAL_RANGE : StrlSampleRange;
+
+input get_WP;
+input get_RANGE;
+input get_MARKDATA;
+
+input start_compute;%{compute}%
+input input_compute:integer;%{compute}%
+output output_compute:integer;%{compute}%
+
+inputoutput sink_name:string;
+output MARKEDWP:StrlSampleIndex;
+
+inputoutput S_RANGE:StrlSampleRange;
+
+input RET_From_UPstream:integer; %{return type from upstream }%
+output My_return_value:integer;
+output sig_for_upstream; %{signal to be passed to upstream }%
+output Srange_for_upstream:StrlSampleRange; %{sample range value to be passed to upstream }%
+output MyMarkedData:StrlSampleRange;
+output temp:Debug4Var;%{signal for debugging}%
+
+function GETMARKEDWP(string):StrlSampleIndex;
+
+%
+%  body part
+%
+
+signal My_Name:string,
+    My_Sample_Range:=INITIAL_RANGE:StrlSampleRange in
+trap body_loop in
+%{   loop}%
+   [
+      every immediate get_WP do
+	 emit MARKEDWP(GETMARKEDWP(?sink_name));
+	 exit body_loop;
+      end every
+   ||
+      every immediate get_RANGE do
+	 run GET_SAMPLE_RANGE[signal S_RANGE/LOCAL_S_RANGE;
+			      signal sink_name/name_module];       
+	 exit body_loop;
+      end every
+   ||
+      every immediate get_MARKDATA do
+	 [
+	 emit My_Sample_Range(?S_RANGE);
+	 emit My_Name(?sink_name);
+	 ||
+	 run MARK_DATA[signal My_Name/name_module;
+		       signal My_Sample_Range/sample_range;
+		       signal RET_From_UPstream/retVal_from_upstream;
+		       signal My_return_value/return_value;
+		       signal sig_for_upstream/call_upstream;
+		       signal Srange_for_upstream/forecastrange;
+		       signal temp/debug_temp];
+	 ];
+	 exit body_loop;
+      end every
+   ||
+      every immediate start_compute do
+	 [
+	 emit My_Name(?sink_name);
+	 ||
+	 run COMPUTE_DATA[signal My_Name/name_module;
+			  signal input_compute/get_sig;
+			  signal output_compute/return_sig;
+			  signal MyMarkedData/MYMARKED_DATA;
+			  signal temp/debug_temp];
+	 ];
+	 exit body_loop
+      end every
+   ]
+%{      await tick;
+      exit body_loop
+   end loop
+}%
+end trap
+end signal
+end module

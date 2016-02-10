@@ -1,0 +1,14 @@
+/*****************************
+ * debug_data.c
+ *****************************/
+#ifndef _DEBUG_DATA
+#define _DEBUG_DATA
+
+#include "debug.h"
+
+char *MYPRINT(char *str)
+{
+  return str;
+}
+
+#endif

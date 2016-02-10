@@ -1,0 +1,140 @@
+Epspectra Implementation
+
+------------------------------------------------------------------------
+
+README
+
+Prior to install Epspectra, it requires the installation of Esterel
+compiler application. The Esterel compiler is currently available to
+Esterel Technologies with Ver. 5.92 . The Epspectra application is
+implemented based on the linux system of intel pentium family machine. It
+is expected to run correctly with the following:
+Linux 2.2.18 or later,
+Intel pentium 600Mhz, and
+a version at least as new as g++ v2.8.1 or egcs-2.90.2.
+
+To compile, please try the following:
+
+1. Download and place source tar file in your home directory as ~/.
+epspectra.tgz
+
+2. Untar the downloaded file (which will be extracted with subdirectory
+of epspectra.)
+tar zxvf epspectra.tgz
+
+3. Type:
+either
+export SPECTRA_BASE=~/epspectra (if you use bash)
+or
+setenv SPECTRA_BASE ~/epspectra (if you use csh or tcsh)
+
+If you don't like to do that, directly modify and validate SPECTRA_BASE
+with Makefile.include in the subdirectory of
+~/epspectra/data_flow_model/. In case of that, SPECTRA_BASE must be set
+to an absolute path to 'data_flow_model'.
+
+4. Edit Makefile.include in the directory of ~/epspectra. Parameters
+including ESTEREL, XES and XEVE should be maybe modified.
+
+5. Type:
+cd radio_gsm
+make
+
+That will build gsm programs with 'gsm_dnlink' to perform series of
+operations from speech to modulation and with 'gsm_uplink' to perform the
+operations from demodulation to PCM signals. In addition to these
+programs, for test, it  will also generate 'gsm_all' which performs the
+operations from speech to modulation and back to demodulation for PCM
+signals at a time.
+
+6. To test the programs, first of all, verify whether 'gsm_all' works or
+not.
+Type:
+./gsm_all papin2.au (16bit-sampled data)
+If it works, then open another window (don't forget the third phase of
+setting SPECTRA_BASE if not directly specifed).
+
+In the first window, type
+./gsm_uplink source (which corresponds to ip address or name that signals
+are received from).
+   
+In the second window, type
+./get_dnlink destination (which corresponds to ip address or machine name
+that signals are sent to).
+
+In this case, source and destination are same since both applications
+operates at the same machine. The input file of get_dnlink is implicitely
+specified to inputs.au. These uplink and downlink tests depend on the
+power of machine which computes signals sent to fast or slow. In the side
+of downlink, it may require an appropriate sleep to adjust a quantity of
+remains of sending data in buffer  neither to overflow buffer nor to make
+it empty. An adjustment to sleeping time can be made in
+~/epspectra/data_flow_model/lib/c++/snk/StrlUDPSink.h.
+
+There are also simple programs modified from examples of software radio
+which may require modification specially concerning interface (which
+corresponds to ~/epspectra/data_flow_model/lib/interface). It may be
+quite unconvient for you. (sorry for that. It reminds you that Esterel is
+not a high-level language and perhaps I'm lazy. Please do that.)
+
+If you have any problems, please send them to:
+Hahnsang Kim
+Hahnsang.Kim@sophia.inria.fr
+
+------------------------------------------------------------------------
+
+Simulation & Verification
+
+Those need the Xes simulator and the Xeve verifier strongly coupled with
+Esterel. These applications are included  in the Esterel Package that you
+may have downloaded above.
+3 properties including Correctness, Saftety and Safety-Liveness are
+verified.
+To confirm the verification,  please do the following:
+
+1. Type:
+cd radio_gsm
+make xeve
+
+That will generate blif codes of Verif_Gsm_Dnlink.blif and
+Verif_Gsm_Uplink.blif. The optimization process can be performed to the
+final targeted format of blif. If you don't have any application for
+optimization  like remlatch and areaopt, skip  the process of
+optimization.
+
+2. Type respectively:
+xeve Verif_Gsm_Dnlink.blif (Verif_Gsm_Dnlink.opt.blif or
+Verif_Gsm_Dnlink.opt.opt.blif if optimized.)
+and
+xeve Verif_Gsm_Uplink.blif (Verif_Gsm_Uplink.opt.blif or
+Verif_Gsm_Uplink.opt.opt.blif if optimized.)
+
+That will make Xeve window show up below. After setting some input
+signals to a certain value (0 or 1), it also sets output signals to
+confirm whether any signal outputs may be possibly emitted or not. Do
+select the radio button of check outputs and then click Apply button.
+
+a main xeve window
+
+A window below showing the results will appear with the number of
+reachable states. Xeve also generates a simulation tape showing a path to
+reach some state. It allows one to trace a path if there is a path
+possibly emitted.
+
+A xeve window showing verification results
+
+
+There are some verification functions in Xeve. Please look at the manual
+of Xeve and try them.
+
+------------------------------------------------------------------------
+
+Documents
+
+There are some documents to show the software architecture concerning
+Epspectra in the directory of ~/epspectra/doc.
+
+------------------------------------------------------------------------
+
+
+Last modified  on the 27th of august, 2002.

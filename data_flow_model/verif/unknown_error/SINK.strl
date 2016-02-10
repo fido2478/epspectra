@@ -1,0 +1,72 @@
+%################################
+%   SINK module 
+%################################
+
+module SINK:
+type StrlSampleRange;
+constant INITIAL_RANGE:StrlSampleRange;
+input Name:string;
+input S_Mark_from_Up:StrlSampleRange;%{set timer on}%
+input S_Compute_from_Up;%{trigger my compute method}%
+output Ack_to_Up:StrlSampleRange;%{inform the upstream of finishing computing}%
+output sig_on; %{trigger TIMER on the upstream}%
+
+function CHECKSAMPLESIZE(StrlSampleRange,StrlSampleRange):integer;
+function UPDATESAMPLE(StrlSampleRange):StrlSampleRange;
+
+%
+%  body part
+%
+
+var CONT_FLAG:=false:boolean,
+    My_Name:="name":string,
+    org_input:=INITIAL_RANGE:StrlSampleRange,
+    my_input:=INITIAL_RANGE:StrlSampleRange in
+
+signal My_Sample_Range:=INITIAL_RANGE:StrlSampleRange,
+       forecast_range:=INITIAL_RANGE:StrlSampleRange,
+       switch_on, switch_off,R_Name:string in
+   [
+      await immediate Name;
+      My_Name:=?Name;
+      loop
+	 emit switch_on;
+	 await S_Mark_from_Up;
+	 org_input:=?S_Mark_from_Up;
+	 emit My_Sample_Range(org_input);
+	 trap compute_loop in
+	    loop
+	       if CONT_FLAG then
+		  emit My_Sample_Range(my_input)
+	       else
+		  emit My_Sample_Range(org_input)
+	       end if;
+	       emit R_Name(My_Name);
+	       run FIT_RANGE_SNK[signal R_Name/name_module;
+				 signal My_Sample_Range/sample_range;
+				 signal forecast_range/input_sample_range];
+	       my_input:=?forecast_range;
+	       emit switch_off;
+	 
+	       await S_Compute_from_Up;
+	       emit R_Name(My_Name);
+	       run COMP_DATA[signal R_Name/name_module];
+	       if CHECKSAMPLESIZE(org_input,my_input)>=0 then
+		  my_input:=UPDATESAMPLE(my_input);
+		  CONT_FLAG:=true
+	       else
+		  CONT_FLAG:=false;
+		  exit compute_loop
+	       end if;
+	    end loop
+	 end trap;
+	 emit Ack_to_Up(my_input);
+      end loop
+   ||
+      run SWITCH[signal switch_on/On;
+		 signal switch_off/Off;
+		 signal sig_on/On_Signal];
+   ]
+end signal
+end var
+end module

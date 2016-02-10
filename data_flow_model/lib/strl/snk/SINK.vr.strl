@@ -1,0 +1,84 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission.
+%
+%################################
+%   SINK module 
+%################################
+
+module SINK:
+type VrSampleRange;
+
+constant INITIAL_RANGE:VrSampleRange;
+input Name:string;
+input S_Mark_from_Up:VrSampleRange;%{set timer on}%
+input S_Compute_from_Up;%{trigger my compute method}%
+output Ack_to_Up:VrSampleRange;%{inform the upstream of finishing computing}%
+output sig_on; %{trigger TIMER on the upstream}%
+output Ready2Receive;
+%{output ComputedSRange : VrSampleRange;}%
+
+function CHECKSAMPLESIZEVR(VrSampleRange,VrSampleRange):integer;
+%function UPDATESAMPLE(VrSampleRange):VrSampleRange;
+procedure UPDATESAMPLEVR(VrSampleRange)();
+%procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+%procedure GLOBALAWAITTICKSTART()();
+%procedure GLOBALAWAITTICKSTOP()();
+%
+%  body part
+%
+var CONT_FLAG:=false:boolean,
+    org_input:=INITIAL_RANGE:VrSampleRange,
+    my_input:=INITIAL_RANGE:VrSampleRange in
+
+signal My_Sample_Range:=INITIAL_RANGE:VrSampleRange,
+       forecast_range:=INITIAL_RANGE:VrSampleRange,
+       switch_on, switch_off in
+   [
+      loop
+	 await immediate S_Mark_from_Up;
+	 emit switch_on;
+	 org_input:=?S_Mark_from_Up;
+	 trap compute_loop in
+	    loop
+	       if CONT_FLAG then
+		  emit My_Sample_Range(my_input)
+	       else
+		  emit My_Sample_Range(org_input)
+	       end if;
+	       run FIT_RANGE_SNK[signal forecast_range/input_sample_range];
+	       my_input:=?forecast_range;
+	       emit switch_off;
+	       emit Ready2Receive;
+	       if CONT_FLAG else
+		  await immediate S_Compute_from_Up
+	       end if;
+	       run COMP_DATA;
+%	       call LOCALINCAWAITTICK()(?Name);%{perfgraph}%
+%	       call GLOBALAWAITTICKSTART()();
+	       await tick;
+%	       call GLOBALAWAITTICKSTOP()();
+	       if CHECKSAMPLESIZEVR(org_input,my_input)>=0 then
+		  call UPDATESAMPLEVR(my_input)();
+%		  my_input:=UPDATESAMPLE(my_input);
+		  CONT_FLAG:=true
+	       else
+		  CONT_FLAG:=false;
+		  exit compute_loop
+	       end if;
+	    end loop
+	 end trap;
+	 emit Ack_to_Up(my_input);
+      end loop
+   ||
+      run SWITCH;
+   ]
+end signal
+end var
+end module

@@ -1,0 +1,104 @@
+%##########################################################
+%#  This module is to control Mark_Data modules.
+%##########################################################
+
+module MARK_DATA:
+
+type StrlSampleRange;
+type StrlSampleIndex;
+type UnsignedInt;
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_RANGE : StrlSampleRange;
+constant INITIAL_UNSIGNEDINT : UnsignedInt;
+
+input name : string;
+input My_Sample_Range : StrlSampleRange;
+input retVal_from_upstream : integer; %{return value from upstream }%
+output My_return_value : integer; %{return value for itself to return}%
+output call_upstream; %{Signal to activate upstream modules}%
+output forecastrange :StrlSampleRange; %{SampleRange to be passed to upstream}%
+
+function GETMARKEDWP(string):StrlSampleIndex;
+function GETWP(string):StrlSampleIndex;
+function GET_OUTPUTSIZE(string):UnsignedInt;
+function ADD_INDEX_SIZE(StrlSampleRange):StrlSampleIndex;
+function CMPSAMPLEINDEX(StrlSampleIndex,StrlSampleIndex):integer;
+function CMPSAMPLEINDEX1(StrlSampleIndex,StrlSampleIndex):integer;
+function GETINDEX(StrlSampleRange):StrlSampleIndex;
+function SUBTRACT_A_B(StrlSampleIndex,StrlSampleIndex):integer;
+function ROUNDUP_REQUESTSIZE (integer,UnsignedInt):integer;
+function SET_SAMPLERANGE(StrlSampleIndex,integer):StrlSampleRange;
+function GET_NUMBERINPUTS(string):integer;
+function FORECASTS(StrlSampleRange,string):StrlSampleRange;
+function REAL_MARK_DATA(StrlSampleIndex,integer,integer,StrlSampleRange,string):integer;
+function CHKMINRP(StrlSampleIndex,StrlSampleRange,string):StrlSampleIndex;
+%
+% body part
+%
+var testrange:=INITIAL_RANGE:StrlSampleRange,
+    pendingWP:=INITIAL_INDEX:StrlSampleIndex,
+    desiredWP:=INITIAL_INDEX:StrlSampleIndex,
+    tempWP:=INITIAL_INDEX:StrlSampleIndex,
+    requestSize:=0:integer,
+    Flag:=0:integer,
+    dataMarkedUpstream:=0:integer, 
+    dataNotReadyUpstream:=0:integer,
+    temp_int:=0:integer,
+    temp_index:=INITIAL_INDEX:StrlSampleIndex,
+    temp_unsigned:=INITIAL_UNSIGNEDINT:UnsignedInt in
+   trap EXIT_FUNC in
+      pendingWP:=GETMARKEDWP(?name);
+      desiredWP:=ADD_INDEX_SIZE(?My_Sample_Range);
+      if CMPSAMPLEINDEX1(desiredWP,GETWP(?name))<=0 then
+	 emit My_return_value(2);
+	 exit EXIT_FUNC
+      end if;
+      if CMPSAMPLEINDEX(pendingWP,GETINDEX(?My_Sample_Range))<0 then
+	 tempWP:=CHKMINRP(pendingWP,?My_Sample_Range,?name);
+	 if CMPSAMPLEINDEX(tempWP,INITIAL_INDEX) <=0 then
+	    emit My_return_value(-1);
+	    exit EXIT_FUNC;
+	 else
+	    pendingWP:=tempWP;
+	 end if;
+      end if;      
+      requestSize:=SUBTRACT_A_B(desiredWP,pendingWP);
+      if requestSize <= 0 then
+	 emit My_return_value(-2);
+	 exit EXIT_FUNC
+      end if;
+      temp_unsigned:=GET_OUTPUTSIZE(?name);
+      requestSize:=ROUNDUP_REQUESTSIZE (requestSize,temp_unsigned);
+      testrange:=SET_SAMPLERANGE(pendingWP,requestSize);
+      emit forecastrange(FORECASTS(testrange,?name));
+      weak abort
+	 sustain call_upstream
+      when immediate retVal_from_upstream;
+      Flag:=?retVal_from_upstream;
+      if Flag = 1 then
+	 if dataNotReadyUpstream<>0 then
+	    emit My_return_value(0);
+	    exit EXIT_FUNC
+	 end if;
+	 dataMarkedUpstream:=1;%{ conformity is omitted }%
+      elsif Flag = 0 then 
+	 emit My_return_value(0);
+	 exit EXIT_FUNC
+      elsif Flag = -1 then
+	 dataNotReadyUpstream:=-1
+      elsif Flag = -2 then
+	 if dataNotReadyUpstream=0 
+	 else
+	    dataNotReadyUpstream:=-2
+	 end if;
+      end if;
+      if dataNotReadyUpstream<>0 then
+	 emit My_return_value(dataNotReadyUpstream);
+	 exit EXIT_FUNC
+      end if;
+      temp_int:=REAL_MARK_DATA(pendingWP,requestSize,dataMarkedUpstream,?forecastrange,?name);
+      emit My_return_value(temp_int);
+   end trap
+end var
+end module

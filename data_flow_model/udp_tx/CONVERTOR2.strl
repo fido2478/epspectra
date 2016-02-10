@@ -1,0 +1,88 @@
+%
+% Copyright 2000, 2001 INRIA
+% Permission to use, copy, modify, distribute, and sell this software and
+% its documentation for any purpose is hereby granted without fee, provided
+% that the above copyright notice appear in all copies and that both that
+% copyright notice and this permission notice appear in supporting
+% documentation, and that the name of INRIA not be used in advertising or
+% publicity pertaining to distribution of the software without specific,
+% written prior permission. 
+%
+
+module CONVERTOR2:
+type StrlSampleRange;
+constant INITIAL_RANGE:StrlSampleRange;
+
+input IN1:StrlSampleRange;
+input IN2:StrlSampleRange;
+input IN3:StrlSampleRange;
+output OUT:StrlSampleRange;
+
+trap main_trap in
+   loop
+      present IN1 then
+	 await IN2;
+	 await IN3;
+	 exit main_trap
+      ||
+	 await IN3;
+	 await IN2;
+	 exit main_trap
+      ||
+	 every [IN2 and IN3] do
+	    exit main_trap
+	 end every
+      end present;
+   ||
+      present IN2 then
+	 await IN1;
+	 await IN3;
+	 exit main_trap
+      ||
+	 await IN3;
+	 await IN1;
+	 exit main_trap
+      ||
+	 every [IN1 and IN3] do
+	    exit main_trap
+	 end every
+      end present;
+   ||
+      present IN3 then
+	 await IN1;
+	 await IN2;
+	 exit main_trap
+      ||
+	 await IN2;
+	 await IN1;
+	 exit main_trap
+      ||
+	 every [IN1 and IN2] do
+	    exit main_trap
+	 end every
+      end present;
+   ||
+      present IN1 and IN2 then
+	 await IN3;
+	 exit main_trap
+      end present;
+   ||
+      present IN1 and IN3 then
+	 await IN2;
+	 exit main_trap
+      end present;
+   ||
+      present IN2 and IN3 then
+	 await IN1;
+	 exit main_trap
+      end present;
+   ||
+      present IN1 and IN2 and IN3 then
+	 exit main_trap
+      end present;
+   ||
+      await tick;
+   end loop
+end trap;
+    emit OUT(INITIAL_RANGE)
+end module

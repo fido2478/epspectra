@@ -1,0 +1,23 @@
+module SOURCE:
+
+input Name;
+input Ack_From_Down;
+output output_sample_range;
+output E_Compute_to_Down,ComputedSRange;
+input snooping;
+%
+%  body part
+%
+var INITIAL_FLAG:=true:boolean in
+
+signal My_Sample_Range in
+   loop
+      await immediate Ack_From_Down;
+      run  FIT_RANGE_SRC;
+      run COMP_DATA;
+      run TIMER[signal snooping/set_on];
+      emit E_Compute_to_Down
+   end loop
+end signal
+end var
+end module

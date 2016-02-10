@@ -1,0 +1,96 @@
+%################################
+%   P_MOD1to2 module 
+%################################
+
+module P_MOD1to2:
+
+type StrlSampleRange;
+
+constant INITIAL_RANGE:StrlSampleRange;
+
+input Name:string;
+%{input Input_Sample_Range:StrlSampleRange;}%
+%{output Output_Sample_Range:StrlSampleRange;}%
+
+input S_Mark_from_Up:StrlSampleRange;%{Input_Sample_Range}%
+input Ack_From_Down1:StrlSampleRange;%{for down module1}%
+input Ack_From_Down2:StrlSampleRange;%{for down module2}%
+output E_Mark_to_Down:StrlSampleRange;%{Output_Sample_Range for down module1 & 2}%
+input S_Compute_from_Up;%{trigger my compute method}%
+output E_Compute_to_Down;%{for down module}%
+output Ack_to_Up:StrlSampleRange;%{inform the upstream of finishing computing}%
+input snooping;
+output sig_on; %{trigger TIMER on the upstream}%
+
+function CHECKSAMPLESIZE(StrlSampleRange,StrlSampleRange):integer;
+function UPDATESAMPLE(StrlSampleRange):StrlSampleRange;
+
+%
+%  body part
+%
+
+var CONT_FLAG:=false:boolean,
+    My_Name:="name":string,
+    org_input:=INITIAL_RANGE:StrlSampleRange,
+    my_input:=INITIAL_RANGE:StrlSampleRange in
+
+signal My_Sample_Range:=INITIAL_RANGE:StrlSampleRange,
+       forecast_range:=INITIAL_RANGE:StrlSampleRange,
+       switch_on, switch_off,R_Name:string,INI_PHASE:boolean in
+   [
+      await immediate Name;
+      My_Name:=?Name;
+      emit INI_PHASE(true);
+      loop
+	 emit switch_on;
+	 present INI_PHASE then
+	    await S_Mark_from_Up;
+	    org_input:=?S_Mark_from_Up;
+	    emit My_Sample_Range(org_input)
+	 else
+	    run WAIT_SIG2[signal S_Mark_from_Up/IN1;
+			  signal Ack_From_Down1/IN2;
+			  signal Ack_From_Down2/IN3];
+	    org_input:=?S_Mark_from_Up;
+	    emit My_Sample_Range(org_input)
+	 end present;
+	 trap compute_loop in
+	    loop
+	       if CONT_FLAG then
+		  run WAIT_SIG1[signal Ack_From_Down1/IN1;
+			       signal Ack_From_Down2/IN2];
+		  emit My_Sample_Range(my_input);
+	       end if;
+	       emit R_Name(My_Name);
+	       run FIT_RANGE_MOD[signal R_Name/name_module;
+			     signal My_Sample_Range/sample_range;
+			     signal E_Mark_to_Down/output_sample_range;
+			     signal forecast_range/input_sample_range];
+	       my_input:=?forecast_range;
+%{	       emit E_Mark_to_Down(?E_Mark_to_Down);}%
+	       emit switch_off;
+	       
+	       await immediate S_Compute_from_Up;
+	       emit R_Name(My_Name);
+	       run COMP_DATA[signal R_Name/name_module];
+	       run TIMER[signal snooping/set_on];
+	       emit E_Compute_to_Down;
+	       if CHECKSAMPLESIZE(org_input,my_input)>=0 then
+		  my_input:=UPDATESAMPLE(my_input);
+		  CONT_FLAG:=true
+	       else
+		  CONT_FLAG:=false;
+		  exit compute_loop
+	       end if;
+	    end loop;
+	 end trap;
+	 emit Ack_to_Up(my_input);
+      end loop
+   ||
+      run SWITCH[signal switch_on/On;
+		 signal switch_off/Off;
+		 signal sig_on/On_Signal];
+   ]
+end signal
+end var
+end module

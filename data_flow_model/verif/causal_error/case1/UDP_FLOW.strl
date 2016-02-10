@@ -1,0 +1,172 @@
+%##########################################################
+%#  This module is UDP_TX application with data flow model.
+%##########################################################
+
+module UDP_FLOW:
+
+type StrlSampleRange;
+constant INITIAL_RANGE:StrlSampleRange;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+constant OUT_RATE = 400000 : integer;
+constant IN_RATE = 2000 : integer;
+constant OUTPUT_SYMBOL_BITS = 4 : integer;
+constant AMPL = 80 : integer;
+constant NUM_SYMB = 16 : integer;
+constant CONST_NUM = 5 : integer;
+constant K = 2 : integer;
+constant ALPHA = 1.6f : float;
+constant CENTER_FREQ_MULT = 4 : integer;
+constant DEFAULT_TPD = 1300.0f : float;
+
+input User_Quit;
+
+inputoutput Source_module:string;
+inputoutput Coder_module:string;
+inputoutput Mod_module:string;
+inputoutput Summer_module:string;
+inputoutput Scopesink_module:string;
+inputoutput Sink_module:string;
+
+inputoutput SOURCE_SRANGE:StrlSampleRange;
+inputoutput CODER_SRANGE:StrlSampleRange;
+inputoutput MOD_SRANGE:StrlSampleRange;
+inputoutput SUMMER_SRANGE:StrlSampleRange;
+inputoutput SCOPESINK_SRANGE:StrlSampleRange;
+inputoutput SINK_SRANGE:StrlSampleRange;
+
+function GET_SOURCE(string,integer):string;
+function GET_CODER(integer):string;
+function GET_MOD_F(integer,float,integer,integer,integer,integer,float,integer):string;
+function GET_SUMMER():string;
+function GET_SINK(string,integer):string;
+function GET_SCOPESINK_F(float,integer,integer,integer,integer):string;
+procedure CONNECT_MODULES()(string,string,integer);
+
+%
+% body part
+%
+var nameofsource:string,nameofcoder:string,nameofmod:string,
+    nameofsummer:string,nameofscopesink:string,nameofsink:string in
+
+signal Trigger,
+       Mark_Wire_S_M:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_Wire_M_M1:=INITIAL_RANGE:StrlSampleRange,
+       Mark_Wire_M_M2:=INITIAL_RANGE:StrlSampleRange,
+       Mark_Wire_M_S1:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_Wire_M_S2:=INITIAL_RANGE:StrlSampleRange,
+       Compute_Wire_S_M, Compute_Wire_M_M1, 
+       Compute_Wire_M_S1, Compute_Wire_M_S2,
+       Ack_Wire_S_M:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Wire_M_M1:=INITIAL_RANGE:StrlSampleRange,
+       Ack_Wire_M_M2:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Wire_M_S1:=INITIAL_RANGE:StrlSampleRange,
+       Ack_Wire_M_S2:=INITIAL_RANGE:StrlSampleRange,
+       Clock_Wire_S_M, Clock_Wire_M_M1,
+       Clock_Wire_M_S1, Clock_Wire_M_S2 in
+
+%%%%%%%%%%%%%%%%%%%%%
+% create modules
+%%%%%%%%%%%%%%%%%%%%%
+
+abort
+
+   nameofsource:=GET_SOURCE("tmp.gz",1);
+   nameofcoder:=GET_CODER(OUTPUT_SYMBOL_BITS);
+   nameofmod:=GET_MOD_F(OUT_RATE/IN_RATE,65000.0f,AMPL,NUM_SYMB,CONST_NUM,K,ALPHA,CENTER_FREQ_MULT);
+   nameofsummer:=GET_SUMMER();
+   nameofscopesink:=GET_SCOPESINK_F(DEFAULT_TPD,-128,128,500,1);
+   nameofsink:=GET_SINK("localhost",5001);
+
+  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make topology
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  call CONNECT_MODULES()(nameofscopesink,nameofmod,OUT_RATE);
+  call CONNECT_MODULES()(nameofsink,nameofsummer,OUT_RATE);
+  call CONNECT_MODULES()(nameofsummer,nameofmod,OUT_RATE);
+  call CONNECT_MODULES()(nameofmod,nameofcoder,IN_RATE);
+  call CONNECT_MODULES()(nameofcoder,nameofsource,IN_RATE*OUTPUT_SYMBOL_BITS/8);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% initialize parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  emit Source_module(nameofsource);
+  emit Coder_module(nameofcoder);
+  emit Mod_module(nameofmod);
+  emit Summer_module(nameofsummer);
+  emit Scopesink_module(nameofscopesink);
+  emit Sink_module(nameofsink);
+  
+  run INITIALIZE_SINK[signal Sink_module/name_module];
+  run INITIALIZE_SINK[signal Scopesink_module/name_module];
+  
+  [
+     emit Ack_Wire_S_M(INITIAL_RANGE);
+   ||
+     run source1/
+    SOURCE[signal Source_module/Name;
+	   signal Mark_Wire_S_M/E_Mark_to_Down;
+	   signal Compute_Wire_S_M/E_Compute_to_Down;
+	   signal Ack_Wire_S_M/Ack_From_Down;
+	   signal Clock_Wire_S_M/snooping]
+   ||
+      run module1/
+    P_MOD[signal Coder_module/Name;
+	  signal Mark_Wire_S_M/S_Mark_from_Up;%{}%
+	  signal Compute_Wire_S_M/S_Compute_from_Up;%{}%
+	  signal Ack_Wire_S_M/Ack_to_Up;%{}%
+	  signal Clock_Wire_S_M/sig_on;%{}%
+	  signal Mark_Wire_M_M1/E_Mark_to_Down;%{wire1}%
+	  signal Compute_Wire_M_M1/E_Compute_to_Down;%{wire2}%
+	  signal Ack_Wire_M_M1/Ack_From_Down;%{wire3}%
+	  signal Clock_Wire_M_M1/snooping]%{wire4}%
+   ||
+      run module2/
+    P_MOD1to2[signal Mod_module/Name;
+	      signal Mark_Wire_M_M1/S_Mark_from_Up;%{wire1}%
+	  signal Compute_Wire_M_M1/S_Compute_from_Up;%{wire2}%
+	  signal Ack_Wire_M_M1/Ack_to_Up;%{wire3}%
+	  signal Clock_Wire_M_M1/sig_on;%{wire4}%
+	  signal Mark_Wire_M_S1/E_Mark_to_Down;%{to snk1}%
+%{	  signal Mark_Wire_M_M2/E_Mark_to_Down2;}%
+	  signal Compute_Wire_M_S1/E_Compute_to_Down;%{}%
+	  signal Ack_Wire_M_S1/Ack_From_Down1;%{from sink1}%
+	  signal Ack_Wire_M_M2/Ack_From_Down2;%{from mod3}%
+	  signal Clock_Wire_M_S1/snooping]%{}%
+   ||
+      run sink1/
+    SINK[signal Scopesink_module/Name;
+	 signal Mark_Wire_M_S1/S_Mark_from_Up;
+	 signal Compute_Wire_M_S1/S_Compute_from_Up;
+	 signal Ack_Wire_M_S1/Ack_to_Up;
+	 signal Clock_Wire_M_S1/sig_on]
+   ||
+      run module3/
+    P_MOD[signal Summer_module/Name;
+	  signal Mark_Wire_M_S1/S_Mark_from_Up;%{from mod2}%
+	  signal Compute_Wire_M_S1/S_Compute_from_Up;%{from mod2}%
+	  signal Ack_Wire_M_M2/Ack_to_Up;%{to mod2}%
+	  signal Clock_Wire_M_S1/sig_on;%{to mod2}%
+	  signal Mark_Wire_M_S2/E_Mark_to_Down;%{to snk2}%
+	  signal Compute_Wire_M_S2/E_Compute_to_Down;%{to snk2}%
+	  signal Ack_Wire_M_S2/Ack_From_Down;%{from snk2}%
+	  signal Clock_Wire_M_S2/snooping]%{from snk2}%
+   ||
+      run sink2/
+    SINK[signal Sink_module/Name;
+	 signal Mark_Wire_M_S2/S_Mark_from_Up;
+	 signal Compute_Wire_M_S2/S_Compute_from_Up;
+	 signal Ack_Wire_M_S2/Ack_to_Up;
+	 signal Clock_Wire_M_S2/sig_on]
+   ]
+when User_Quit
+end signal
+end var
+end module

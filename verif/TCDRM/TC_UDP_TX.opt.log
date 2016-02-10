@@ -1,0 +1,317 @@
+sis> UC Berkeley, SIS 1.3 (compiled 20-Mar-00 at 1:56 PM)
+sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=1132	latches=56
+lits(sop)=2483	lits(fac)=2476
+Total number of levels = 84
+elapse: 0.5 seconds, total: 0.5 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=1134	latches=56
+lits(sop)=2478	lits(fac)=2478
+Total number of levels = 84
+elapse: 0.1 seconds, total: 0.7 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=1500	latches=56
+lits(sop)=2844	lits(fac)=2844
+Total number of levels = 112
+elapse: 0.9 seconds, total: 1.6 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=1500	latches=56
+lits(sop)=2812	lits(fac)=2812
+Total number of levels = 124
+elapse: 1.0 seconds, total: 2.5 seconds
+TC_UDP_TX.opt.rel.blif: No such file or directory
+Warning: can't read network "TC_UDP_TX.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 56     depth = 25     states visited = 13435
+TC_UDP_TX_667_28	pi=91	po=691	nodes=1500	latches=56
+lits(sop)=2812	lits(fac)=2812
+Total number of levels = 124
+elapse: 7.1 seconds, total: 9.6 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=1500	latches=56
+lits(sop)=2812	lits(fac)=2812
+Total number of levels = 124
+elapse: 0.1 seconds, total: 9.7 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=613	latches=52
+lits(sop)=1087	lits(fac)=1087
+Total number of levels = 25
+elapse: 47.2 seconds, total: 56.9 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=613	latches=52
+lits(sop)=1087	lits(fac)=1087
+Total number of levels = 25
+elapse: 0.2 seconds, total: 57.1 seconds
+sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=613	latches=52
+lits(sop)=1087	lits(fac)=1087
+Total number of levels = 25
+elapse: 0.1 seconds, total: 57.2 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=345	latches=52
+lits(sop)= 818	lits(fac)= 790
+Total number of levels = 20
+elapse: 0.3 seconds, total: 57.5 seconds
+sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=345	latches=52
+lits(sop)= 788	lits(fac)= 762
+Total number of levels = 20
+elapse: 1.1 seconds, total: 58.6 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=345	latches=52
+lits(sop)= 788	lits(fac)= 762
+Total number of levels = 20
+elapse: 0.1 seconds, total: 58.7 seconds
+sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=354	latches=52
+lits(sop)= 765	lits(fac)= 758
+Total number of levels = 20
+elapse: 0.1 seconds, total: 58.8 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=354	latches=52
+lits(sop)= 764	lits(fac)= 757
+Total number of levels = 31
+elapse: 0.3 seconds, total: 59.1 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> TC_UDP_TX.opt.rel.blif: No such file or directory
+Warning: can't read network "TC_UDP_TX.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 52     depth = 25     states visited = 12915
+TC_UDP_TX_667_28	pi=91	po=691	nodes=354	latches=52
+lits(sop)= 764	lits(fac)= 757
+Total number of levels = 31
+elapse: 3.8 seconds, total: 62.9 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=354	latches=52
+lits(sop)= 764	lits(fac)= 757
+Total number of levels = 31
+elapse: 0.0 seconds, total: 63.0 seconds
+sis> unknown       	pi= 2	po= 1	nodes=  1	latches= 0
+lits(sop)=   2	lits(fac)=   2
+Total number of levels = 1
+elapse: 19.4 seconds, total: 82.3 seconds
+unknown       	pi= 2	po= 1	nodes=  1	latches= 0
+lits(sop)=   2	lits(fac)=   2
+Total number of levels = 1
+elapse: 0.0 seconds, total: 82.3 seconds
+unknown       	pi= 2	po= 1	nodes=  1	latches= 0
+lits(sop)=   4	lits(fac)=   4
+Total number of levels = 1
+elapse: 0.0 seconds, total: 82.3 seconds
+unknown       	pi= 2	po= 1	nodes=  1	latches= 0
+lits(sop)=   2	lits(fac)=   2
+Total number of levels = 1
+elapse: 0.0 seconds, total: 82.3 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=354	latches=50
+lits(sop)= 761	lits(fac)= 754
+Total number of levels = 20
+elapse: 3.2 seconds, total: 85.5 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=354	latches=50
+lits(sop)= 761	lits(fac)= 754
+Total number of levels = 20
+elapse: 0.1 seconds, total: 85.6 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=354	latches=50
+lits(sop)= 761	lits(fac)= 754
+Total number of levels = 20
+elapse: 0.1 seconds, total: 85.7 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=361	latches=50
+lits(sop)= 761	lits(fac)= 761
+Total number of levels = 20
+elapse: 0.1 seconds, total: 85.8 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=548	latches=50
+lits(sop)= 948	lits(fac)= 948
+Total number of levels = 23
+elapse: 0.3 seconds, total: 86.1 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=548	latches=50
+lits(sop)= 946	lits(fac)= 946
+Total number of levels = 27
+elapse: 0.2 seconds, total: 86.4 seconds
+TC_UDP_TX.opt.rel.blif: No such file or directory
+Warning: can't read network "TC_UDP_TX.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 50     depth = 25     states visited = 12915
+TC_UDP_TX_667_28	pi=91	po=691	nodes=548	latches=50
+lits(sop)= 946	lits(fac)= 946
+Total number of levels = 27
+elapse: 3.5 seconds, total: 89.9 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=548	latches=50
+lits(sop)= 946	lits(fac)= 946
+Total number of levels = 27
+elapse: 0.0 seconds, total: 89.9 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=530	latches=48
+lits(sop)= 912	lits(fac)= 912
+Total number of levels = 23
+elapse: 24.9 seconds, total: 114.8 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=530	latches=48
+lits(sop)= 912	lits(fac)= 912
+Total number of levels = 23
+elapse: 0.1 seconds, total: 115.0 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> TC_UDP_TX.opt.rel.blif: No such file or directory
+Warning: can't read network "TC_UDP_TX.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 48     depth = 25     states visited = 12457
+TC_UDP_TX_667_28	pi=91	po=691	nodes=530	latches=48
+lits(sop)= 912	lits(fac)= 912
+Total number of levels = 23
+elapse: 3.4 seconds, total: 118.3 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=530	latches=48
+lits(sop)= 912	lits(fac)= 912
+Total number of levels = 23
+elapse: 0.0 seconds, total: 118.4 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=530	latches=48
+lits(sop)= 912	lits(fac)= 912
+Total number of levels = 23
+elapse: 21.6 seconds, total: 140.0 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=530	latches=48
+lits(sop)= 912	lits(fac)= 912
+Total number of levels = 23
+elapse: 0.1 seconds, total: 140.1 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=530	latches=48
+lits(sop)= 912	lits(fac)= 912
+Total number of levels = 23
+elapse: 0.1 seconds, total: 140.2 seconds
+sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=530	latches=48
+lits(sop)= 912	lits(fac)= 912
+Total number of levels = 23
+elapse: 0.1 seconds, total: 140.3 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=234	latches=48
+lits(sop)= 831	lits(fac)= 756
+Total number of levels = 13
+elapse: 0.3 seconds, total: 140.7 seconds
+sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=234	latches=48
+lits(sop)= 692	lits(fac)= 646
+Total number of levels = 17
+elapse: 1.2 seconds, total: 141.9 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=234	latches=48
+lits(sop)= 692	lits(fac)= 646
+Total number of levels = 17
+elapse: 0.1 seconds, total: 142.0 seconds
+sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=252	latches=48
+lits(sop)= 644	lits(fac)= 636
+Total number of levels = 18
+elapse: 0.1 seconds, total: 142.1 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=252	latches=48
+lits(sop)= 644	lits(fac)= 636
+Total number of levels = 23
+elapse: 0.2 seconds, total: 142.3 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=223	latches=48
+lits(sop)= 627	lits(fac)= 607
+Total number of levels = 18
+elapse: 0.1 seconds, total: 142.5 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=223	latches=48
+lits(sop)= 627	lits(fac)= 607
+Total number of levels = 18
+elapse: 0.8 seconds, total: 143.3 seconds
+sis> sis> sis> sis> TC_UDP_TX.opt.rel.blif: No such file or directory
+Warning: can't read network "TC_UDP_TX.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 48     depth = 25     states visited = 12457
+TC_UDP_TX_667_28	pi=91	po=691	nodes=223	latches=48
+lits(sop)= 627	lits(fac)= 607
+Total number of levels = 18
+elapse: 3.3 seconds, total: 146.6 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=223	latches=48
+lits(sop)= 627	lits(fac)= 607
+Total number of levels = 18
+elapse: 0.0 seconds, total: 146.6 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=223	latches=48
+lits(sop)= 596	lits(fac)= 584
+Total number of levels = 18
+elapse: 40.3 seconds, total: 186.9 seconds
+sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=223	latches=48
+lits(sop)= 596	lits(fac)= 584
+Total number of levels = 18
+elapse: 0.2 seconds, total: 187.0 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=220	latches=47
+lits(sop)= 590	lits(fac)= 578
+Total number of levels = 18
+elapse: 0.2 seconds, total: 187.2 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=228	latches=47
+lits(sop)= 586	lits(fac)= 586
+Total number of levels = 18
+elapse: 0.1 seconds, total: 187.3 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=504	latches=47
+lits(sop)= 862	lits(fac)= 862
+Total number of levels = 23
+elapse: 0.3 seconds, total: 187.6 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=504	latches=47
+lits(sop)= 859	lits(fac)= 859
+Total number of levels = 25
+elapse: 0.2 seconds, total: 187.8 seconds
+TC_UDP_TX.opt.rel.blif: No such file or directory
+Warning: can't read network "TC_UDP_TX.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 47     depth = 25     states visited = 12433
+TC_UDP_TX_667_28	pi=91	po=691	nodes=504	latches=47
+lits(sop)= 859	lits(fac)= 859
+Total number of levels = 25
+elapse: 3.0 seconds, total: 190.8 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=504	latches=47
+lits(sop)= 859	lits(fac)= 859
+Total number of levels = 25
+elapse: 0.0 seconds, total: 190.8 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=500	latches=47
+lits(sop)= 854	lits(fac)= 854
+Total number of levels = 23
+elapse: 24.1 seconds, total: 214.9 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=500	latches=47
+lits(sop)= 854	lits(fac)= 854
+Total number of levels = 23
+elapse: 0.1 seconds, total: 215.1 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=500	latches=47
+lits(sop)= 854	lits(fac)= 854
+Total number of levels = 23
+elapse: 0.1 seconds, total: 215.2 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> TC_UDP_TX.opt.rel.blif: No such file or directory
+Warning: can't read network "TC_UDP_TX.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 47     depth = 25     states visited = 12433
+TC_UDP_TX_667_28	pi=91	po=691	nodes=500	latches=47
+lits(sop)= 854	lits(fac)= 854
+Total number of levels = 23
+elapse: 3.0 seconds, total: 218.2 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=500	latches=47
+lits(sop)= 854	lits(fac)= 854
+Total number of levels = 23
+elapse: 0.0 seconds, total: 218.2 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=499	latches=46
+lits(sop)= 853	lits(fac)= 853
+Total number of levels = 23
+elapse: 21.1 seconds, total: 239.3 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=499	latches=46
+lits(sop)= 853	lits(fac)= 853
+Total number of levels = 23
+elapse: 0.1 seconds, total: 239.4 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=499	latches=46
+lits(sop)= 853	lits(fac)= 853
+Total number of levels = 23
+elapse: 0.1 seconds, total: 239.5 seconds
+sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=297	latches=46
+lits(sop)= 658	lits(fac)= 651
+Total number of levels = 18
+elapse: 0.2 seconds, total: 239.7 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=297	latches=46
+lits(sop)= 658	lits(fac)= 651
+Total number of levels = 18
+elapse: 0.8 seconds, total: 240.6 seconds
+sis> sis> sis> sis> TC_UDP_TX.opt.rel.blif: No such file or directory
+Warning: can't read network "TC_UDP_TX.opt.rel.blif";"extract_seq_dc" is being called instead
+sis> 
+number of latches = 46     depth = 25     states visited = 12377
+TC_UDP_TX_667_28	pi=91	po=691	nodes=297	latches=46
+lits(sop)= 658	lits(fac)= 651
+Total number of levels = 18
+elapse: 2.8 seconds, total: 243.4 seconds
+TC_UDP_TX_667_28	pi=91	po=691	nodes=297	latches=46
+lits(sop)= 658	lits(fac)= 651
+Total number of levels = 18
+elapse: 0.0 seconds, total: 243.4 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=297	latches=46
+lits(sop)= 656	lits(fac)= 649
+Total number of levels = 18
+elapse: 29.9 seconds, total: 273.3 seconds
+sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=297	latches=46
+lits(sop)= 656	lits(fac)= 649
+Total number of levels = 18
+elapse: 0.2 seconds, total: 273.5 seconds
+sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=297	latches=46
+lits(sop)= 656	lits(fac)= 649
+Total number of levels = 18
+elapse: 0.1 seconds, total: 273.6 seconds
+sis> sis> sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=299	latches=46
+lits(sop)= 654	lits(fac)= 651
+Total number of levels = 18
+elapse: 0.1 seconds, total: 273.7 seconds
+sis> sis> sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=299	latches=46
+lits(sop)= 654	lits(fac)= 651
+Total number of levels = 27
+elapse: 0.2 seconds, total: 273.9 seconds
+sis> sis> TC_UDP_TX_667_28	pi=91	po=691	nodes=299	latches=46
+lits(sop)= 654	lits(fac)= 651
+Total number of levels = 27
+elapse: 0.1 seconds, total: 274.0 seconds

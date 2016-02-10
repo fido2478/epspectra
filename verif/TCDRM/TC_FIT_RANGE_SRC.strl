@@ -1,0 +1,76 @@
+%##########################################################
+%#  This module is to control Mark_Data modules.
+%##########################################################
+
+module FIT_RANGE_SRC:
+
+type StrlSampleRange;
+type StrlSampleIndex;
+type UnsignedLL;
+type UnsignedInt;
+type Debug4Var;%{for debug}%
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_RANGE : StrlSampleRange;
+constant INITIAL_UNSIGNEDINT : UnsignedInt;
+constant INITIAL_DEBUG4VAR : Debug4Var;%{for debug}%
+constant INITIAL_UNSIGNEDLL:UnsignedLL;
+
+sensor MD_Signal:UnsignedLL;%{for tc}%
+input Name : string;
+input My_Sample_Range : StrlSampleRange;
+output output_sample_range : StrlSampleRange;
+
+function GETMARKEDWP(string):StrlSampleIndex;
+function ADD_INDEX_SIZE(StrlSampleRange):StrlSampleIndex;
+function SUBTRACT_A_B(StrlSampleIndex,StrlSampleIndex):integer;
+function GETMAXOUTSIZE(string):integer;
+function GET_OUTPUTSIZE(string):UnsignedInt;
+function ROUNDOWN_SIZE(integer,UnsignedInt):integer;
+function SET_SAMPLERANGE(StrlSampleIndex,integer):StrlSampleRange;
+function REAL_FIT_RANGE(StrlSampleIndex,integer,StrlSampleRange,string):integer;
+function error_exit(integer):integer;
+function DEBUG_RANGE(string,StrlSampleRange):Debug4Var;%{for debug}%
+procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+procedure SKIPPING_DATA()(UnsignedLL);
+function CMPULL(UnsignedLL,UnsignedLL):integer;
+function SKIP_SAMPLEDATA(UnsignedLL,StrlSampleIndex):StrlSampleIndex;%{for tc}%
+%
+% body part
+%
+var input_range:=INITIAL_RANGE:StrlSampleRange,
+    output_range:=INITIAL_RANGE:StrlSampleRange,
+    pendingWP:=INITIAL_INDEX:StrlSampleIndex,
+    remainedWP:=INITIAL_INDEX:StrlSampleIndex,
+    requestSize:=0:integer,
+    maxOutSize:=0:integer,
+    temp_int:=0:integer,
+    temp_unsigned:=INITIAL_UNSIGNEDINT:UnsignedInt in
+   
+   await immediate My_Sample_Range;
+   input_range:=?My_Sample_Range;
+   pendingWP:=GETMARKEDWP(?Name);%{my marked point}%
+   remainedWP:=ADD_INDEX_SIZE(input_range);%{upstream's marked point}%
+   requestSize:=SUBTRACT_A_B(pendingWP,remainedWP);%{evaluate datasize}%
+   if requestSize<0 then
+      temp_int:=error_exit(0);
+   end if;
+%{   maxOutSize:=GETMAXOUTSIZE(?Name); }%
+   maxOutSize:=200;
+   requestSize:=maxOutSize+requestSize;
+   if requestSize>maxOutSize then
+      requestSize:=maxOutSize
+   end if;
+   if CMPULL(?MD_Signal,INITIAL_UNSIGNEDLL)>0 then
+      call SKIPPING_DATA()(?MD_Signal);
+      pendingWP:=SKIP_SAMPLEDATA(?MD_Signal,pendingWP)
+   end if;
+   temp_unsigned:=GET_OUTPUTSIZE(?Name);%{get output unit}%
+   requestSize:=ROUNDOWN_SIZE (requestSize,temp_unsigned);
+   output_range:=SET_SAMPLERANGE(pendingWP,requestSize);%{set my SampleRange}%
+   temp_int:=REAL_FIT_RANGE(pendingWP,requestSize,INITIAL_RANGE,?Name);
+   call LOCALINCAWAITTICK()(?Name);%{perfgraph}%
+   await tick;
+   emit output_sample_range(output_range);
+end var
+end module

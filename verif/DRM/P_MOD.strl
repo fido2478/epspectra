@@ -1,0 +1,55 @@
+module P_MOD:
+
+input Name;
+input S_Mark_from_Up,Ack_From_Down,output_sample_range,S_Compute_from_Up;
+output E_Compute_to_Down,Ack_to_Up,ComputedSRange;
+input snooping;
+output sig_on;
+function CHECKSAMPLESIZE():integer;
+var CONT_FLAG:=false:boolean in
+signal My_Sample_Range,switch_on, switch_off,INI_PHASE:boolean in
+   [
+      emit INI_PHASE(true);
+      loop
+	 present INI_PHASE then
+	    await S_Mark_from_Up;
+	    emit switch_on;
+	    emit My_Sample_Range
+	 else
+	    run WAIT_SIG1[signal S_Mark_from_Up/IN1;
+			 signal Ack_From_Down/IN2];
+	    emit switch_on;
+	    emit My_Sample_Range
+	 end present;
+
+	 trap compute_loop in
+	    loop
+	       if CONT_FLAG then
+		  await Ack_From_Down;
+		  emit My_Sample_Range
+	       end if;
+	       run FIT_RANGE_MOD;
+	       emit switch_off;
+	       await immediate S_Compute_from_Up;
+	       run COMP_DATA;
+	       await tick;
+	       run TIMER[signal snooping/set_on];
+	       emit E_Compute_to_Down;
+	       if CHECKSAMPLESIZE()>=0 then
+		  CONT_FLAG:=true
+	       else
+		  CONT_FLAG:=false;
+		  exit compute_loop
+	       end if;
+	    end loop;
+	 end trap;
+	 emit Ack_to_Up;
+      end loop
+   ||
+      run SWITCH[signal switch_on/On;
+		 signal switch_off/Off;
+		 signal sig_on/On_Signal];
+   ]
+end signal
+end var
+end module

@@ -1,0 +1,34 @@
+%################################
+%   SINK module 
+%################################
+
+module SINK:
+
+input S_Mark_from_Up;%{set timer on}%
+input S_Compute_from_Up;%{trigger my compute method}%
+output Ack_to_Up;%{inform the upstream of finishing computing}%
+output sig_on; %{trigger TIMER on the upstream}%
+
+%
+%  body part
+%
+
+signal switch_on, switch_off in
+   [
+      loop
+	 await S_Mark_from_Up;
+	 emit switch_on;
+	 run MARK_DATA;
+	 emit switch_off;
+	 
+	 await S_Compute_from_Up;
+	 run COMPUTE_DATA4SINK;
+	 emit Ack_to_Up;
+      end loop
+   ||
+      run SWITCH[signal switch_on/On;
+		 signal switch_off/Off;
+		 signal sig_on/On_Signal];
+   ]
+end signal
+end module

@@ -1,0 +1,244 @@
+%##########################################################
+%#  This module is UDP_TX application with data flow model.
+%##########################################################
+
+module UDP_FLOW:
+
+type StrlSampleRange;
+type UnsignedLL;
+type UnsignedLong;
+
+constant INITIAL_RANGE:StrlSampleRange;
+constant INITIAL_UNSIGNEDLL:UnsignedLL;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+constant S_OUT_RATE = 400000 : integer;
+constant S_IN_RATE = 2000 : integer;
+constant S_OUTPUT_SYMBOL_BITS = 4 : integer;
+constant S_AMPL = 80 : integer;
+constant S_NUM_SYMB = 16 : integer;
+constant S_CONST_NUM = 5 : integer;
+constant S_K = 2 : integer;
+constant S_ALPHA = 0.6f : float;
+constant S_CENTER_FREQ_MULT = 4 : integer;
+constant S_DEF_TPD = 2600.0f : float;
+
+input on_TimeConstraint:integer;
+input User_Quit;
+inputoutput Source_module:string;
+inputoutput Coder_module:string;
+inputoutput Mod_module:string;
+inputoutput Summer_module:string;
+inputoutput Scopesink_module:string;
+inputoutput Sink_module:string;
+output SOURCE_COMPUTEDSR:StrlSampleRange;
+output CODER_COMPUTEDSR:StrlSampleRange;
+output MOD_COMPUTEDSR:StrlSampleRange;
+output SUMMER_COMPUTEDSR:StrlSampleRange;
+output SCOPESINK_COMPUTEDSR:StrlSampleRange;
+output SINK_COMPUTEDSR:StrlSampleRange;
+output VIOLATED_DeadlockFreedom;
+output VIOLATED_Liveness;
+
+function GET_SOURCE(string,integer):string;
+function GET_CODER(integer):string;
+function GET_MOD_F(integer,float,integer,integer,integer,integer,float,integer):string;
+function GET_SUMMER():string;
+function GET_SINK(string,integer):string;
+function GET_SCOPESINK_F(float,integer,integer,integer,integer):string;
+procedure CONNECT_MODULES()(string,string,integer,integer);
+procedure INITGUI_MAIN_START()(); %{gui}%
+procedure INITIAL_SINK()(string);
+procedure RUN_GUI_MAIN()(); %{gui}%
+procedure INIT_PERF_GRAPH()();%(perfgraph}%
+procedure START_PERF_GRAPH()();%(perfgraph}%
+procedure STOP_PERF_GRAPH()();%(perfgraph}%
+%
+% body part
+%
+var nameofsource:string,nameofcoder:string,nameofmod:string,
+    nameofsummer:string,nameofscopesink:string,nameofsink:string in
+signal Mark_SC2CD:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_CD2MD:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_MD2SSM:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_SM2SN:=INITIAL_RANGE:StrlSampleRange, 
+       Compute_SC2CD, Compute_CD2MD, 
+       Compute_MD2SSM,Compute_SM2SN,
+       Ack_CD2SC:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_MD2CD:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_SS2MD:=INITIAL_RANGE:StrlSampleRange,
+       Ack_SM2MD:=INITIAL_RANGE:StrlSampleRange,
+       Ack_SN2SM:=INITIAL_RANGE:StrlSampleRange,
+       Clock_CD2SC,Clock_MD2CD,Clock_SSM2MD,Clock_SN2SM,
+       Ack_Comp_Source:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Comp_Coder:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Comp_Modul:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Comp_Scope:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Comp_Summer:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Comp_Sink:=INITIAL_RANGE:StrlSampleRange,
+       Coder_Ready,Modulo_Ready,Scope_Ready,Summer_Ready,Sink_Ready,
+       summer_in,modulo_in,coder_in in
+
+%%%%%%%%%%%%%%%%%%%%%
+% create modules
+%%%%%%%%%%%%%%%%%%%%%
+abort
+   nameofsource:=GET_SOURCE("tmp.gz",1);
+   nameofcoder:=GET_CODER(S_OUTPUT_SYMBOL_BITS);
+   nameofmod:=GET_MOD_F(S_OUT_RATE/S_IN_RATE,65000.0f,S_AMPL,S_NUM_SYMB,S_CONST_NUM,S_K,S_ALPHA,S_CENTER_FREQ_MULT);
+   nameofsummer:=GET_SUMMER();
+   nameofscopesink:=GET_SCOPESINK_F(S_DEF_TPD/2.0f,-128,128,500,1);
+   nameofsink:=GET_SINK("138.96.251.3",5001);
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make topology
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  call CONNECT_MODULES()(nameofscopesink,nameofmod,S_OUT_RATE,8);
+  call CONNECT_MODULES()(nameofsink,nameofsummer,S_OUT_RATE,8);
+  call CONNECT_MODULES()(nameofsummer,nameofmod,S_OUT_RATE,8);
+  call CONNECT_MODULES()(nameofmod,nameofcoder,S_IN_RATE,8);
+  call CONNECT_MODULES()(nameofcoder,nameofsource,S_IN_RATE*S_OUTPUT_SYMBOL_BITS/8,8);
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% initialize parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  emit Source_module(nameofsource);
+  emit Coder_module(nameofcoder);
+  emit Mod_module(nameofmod);
+  emit Summer_module(nameofsummer);
+  emit Scopesink_module(nameofscopesink);
+  emit Sink_module(nameofsink);
+
+  call INITIAL_SINK()(?Sink_module);
+  call INITIAL_SINK()(?Scopesink_module);
+
+  call INIT_PERF_GRAPH()();%{perfgraph should follow sinks}%
+  call INITGUI_MAIN_START()(); %{gui}%
+  call RUN_GUI_MAIN()();%{gui}%
+  [
+     call START_PERF_GRAPH()();
+     emit Ack_CD2SC(INITIAL_RANGE);
+   ||
+     run source/   
+    SOURCE[signal Source_module/Name;
+	   signal Mark_SC2CD/E_Mark_to_Down;
+	   signal Compute_SC2CD/E_Compute_to_Down;
+	   signal Ack_CD2SC/Ack_From_Down;
+	   signal Clock_CD2SC/snooping;
+	   signal Ack_Comp_Source/ComputedSRange];
+   ||
+      run coder/
+    P_MOD[signal Coder_module/Name;
+	  signal Mark_SC2CD/S_Mark_from_Up;
+	  signal Coder_Ready/Ready2Receive;
+	  signal Compute_SC2CD/S_Compute_from_Up;
+	  signal Ack_CD2SC/Ack_to_Up;
+	  signal Clock_CD2SC/sig_on;
+	  signal Mark_CD2MD/E_Mark_to_Down;
+	  signal Compute_CD2MD/E_Compute_to_Down;
+	  signal Ack_MD2CD/Ack_From_Down;
+	  signal Clock_MD2CD/snooping;
+	  signal Ack_Comp_Coder/ComputedSRange];
+   ||
+      run modul/
+    P_MOD1to2[signal Mod_module/Name;
+	      signal Mark_CD2MD/S_Mark_from_Up;
+	  signal Modulo_Ready/Ready2Receive;
+	  signal Compute_CD2MD/S_Compute_from_Up;
+	  signal Ack_MD2CD/Ack_to_Up;
+	  signal Clock_MD2CD/sig_on;
+	  signal Mark_MD2SSM/E_Mark_to_Down;
+	  signal Compute_MD2SSM/E_Compute_to_Down;
+	  signal Ack_SS2MD/Ack_From_Down1;
+	  signal Ack_SM2MD/Ack_From_Down2;
+	  signal Clock_SSM2MD/snooping;
+	  signal Ack_Comp_Modul/ComputedSRange];
+   ||
+      run scopesink/
+    MAINSINK[signal Scopesink_module/Name;
+	 signal Mark_MD2SSM/S_Mark_from_Up;
+	  signal Scope_Ready/Ready2Receive;
+	 signal Compute_MD2SSM/S_Compute_from_Up;
+	 signal Ack_SS2MD/Ack_to_Up;
+	 signal Clock_SSM2MD/sig_on;
+	 signal Ack_Comp_Scope/ComputedSRange];
+   ||
+      run summer/
+    P_MOD[signal Summer_module/Name;
+	  signal Mark_MD2SSM/S_Mark_from_Up;
+	  signal Summer_Ready/Ready2Receive;
+	  signal Compute_MD2SSM/S_Compute_from_Up;
+	  signal Ack_SM2MD/Ack_to_Up;
+	  signal Clock_SSM2MD/sig_on;
+	  signal Mark_SM2SN/E_Mark_to_Down;
+	  signal Compute_SM2SN/E_Compute_to_Down;
+	  signal Ack_SN2SM/Ack_From_Down;
+	  signal Clock_SN2SM/snooping;
+	  signal Ack_Comp_Summer/ComputedSRange];
+   ||
+      run sink/
+    SINK[signal Sink_module/Name;
+	 signal Mark_SM2SN/S_Mark_from_Up;
+	 signal Sink_Ready/Ready2Receive;
+	 signal Compute_SM2SN/S_Compute_from_Up;
+	 signal Ack_SN2SM/Ack_to_Up;
+	 signal Clock_SN2SM/sig_on;
+	 signal Ack_Comp_Sink/ComputedSRange];
+   ||
+     run safety1/
+    DEADLOCK_FREE[signal Coder_Ready/Iy, Compute_SC2CD/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety2/
+    DEADLOCK_FREE[signal Modulo_Ready/Iy,Compute_CD2MD/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety3/
+    DEADLOCK_FREE[signal Summer_Ready/Iy,Compute_MD2SSM/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety4/
+    DEADLOCK_FREE[signal Scope_Ready/Iy,Compute_MD2SSM/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run safety5/
+    DEADLOCK_FREE[signal Sink_Ready/Iy,Compute_SM2SN/Ix,
+		VIOLATED_DeadlockFreedom/VIOLATED_s]
+   ||
+     run liveness1/
+    B_LIVENESS[signal Ack_CD2SC/Ix,Compute_SC2CD/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_SC2CD/IN1,Ack_MD2CD/IN2,coder_in/OUT]
+   ||
+     run liveness2/
+    B_LIVENESS[signal coder_in/Ix,Ack_CD2SC/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR2[signal Mark_CD2MD/IN1,Ack_SS2MD/IN2,Ack_SM2MD/IN3,
+		modulo_in/OUT]
+   ||
+     run liveness3/
+    B_LIVENESS[signal modulo_in/Ix,Ack_MD2CD/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run CONVERTOR1[signal Mark_MD2SSM/IN1,Ack_SN2SM/IN2,summer_in/OUT]
+   ||
+     run liveness4/
+    B_LIVENESS[signal summer_in/Ix,Ack_SM2MD/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+     run liveness5/
+    B_LIVENESS[signal Mark_SM2SN/Ix,Ack_SN2SM/Iy,
+		VIOLATED_Liveness/VIOLATED_s]
+   ||
+    loop 
+      await Ack_SS2MD;
+       call RUN_GUI_MAIN()();
+    end loop
+   ]
+when User_Quit
+end signal
+end var
+end module

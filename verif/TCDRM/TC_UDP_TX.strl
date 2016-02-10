@@ -1,0 +1,254 @@
+%##########################################################
+%#  This module is UDP_TX application with data flow model.
+%##########################################################
+
+module TC_UDP_TX:
+
+type StrlSampleRange;
+type UnsignedLL;
+type UnsignedLong;
+type Debug4Var;%{for debug}%
+
+constant INITIAL_RANGE:StrlSampleRange;
+constant INITIAL_UNSIGNEDLL:UnsignedLL;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% parameter of modules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+constant S_OUT_RATE = 400000 : integer;
+constant S_IN_RATE = 2000 : integer;
+constant S_OUTPUT_SYMBOL_BITS = 4 : integer;
+constant S_AMPL = 80 : integer;
+constant S_NUM_SYMB = 16 : integer;
+constant S_CONST_NUM = 5 : integer;
+constant S_K = 2 : integer;
+constant S_ALPHA = 0.6f : float;
+constant S_CENTER_FREQ_MULT = 4 : integer;
+constant S_DEF_TPD = 2600.0f : float;
+
+input inputdt:double;
+input on_TimeConstraint:integer;
+input User_Quit;
+inputoutput Source_module:string;
+inputoutput Coder_module:string;
+inputoutput Mod_module:string;
+inputoutput Summer_module:string;
+inputoutput Scopesink_module:string;
+inputoutput Sink_module:string;
+output SOURCE_COMPUTEDSR:StrlSampleRange;
+output CODER_COMPUTEDSR:StrlSampleRange;
+output MOD_COMPUTEDSR:StrlSampleRange;
+output SUMMER_COMPUTEDSR:StrlSampleRange;
+output SCOPESINK_COMPUTEDSR:StrlSampleRange;
+output SINK_COMPUTEDSR:StrlSampleRange;
+output debug_source:Debug4Var;%{for debug}%
+output debug_coder:Debug4Var;%{for debug}%
+output debug_mod:Debug4Var;%{for debug}%
+output debug_summer:Debug4Var;%{for debug}%
+output debug_scopesink:Debug4Var;%{for debug}%
+output debug_sink:Debug4Var;%{for debug}%
+
+function GET_SOURCE(string,integer):string;
+function GET_CODER(integer):string;
+function GET_MOD_F(integer,float,integer,integer,integer,integer,float,integer):string;
+function GET_SUMMER():string;
+function GET_SINK(string,integer):string;
+function GET_SCOPESINK_F(float,integer,integer,integer,integer):string;
+procedure CONNECT_MODULES()(string,string,integer,integer);
+procedure INITIAL_SINK()(string);
+procedure INITGUI_MAIN_START()(); %{gui}%
+procedure RUN_GUI_MAIN()(); %{gui}%
+procedure INIT_PERF_GRAPH()();%(perfgraph}%
+procedure START_PERF_GRAPH()();%(perfgraph}%
+procedure STOP_PERF_GRAPH()();%(perfgraph}%
+
+function NEWGETWP(string):UnsignedLong;
+function GET_FREQUENCY(string):float; %{scheduling}%
+function GET_TIMESTAMP():UnsignedLL; %{scheduling}%
+function ELAPSE_TIME(UnsignedLL,double):integer;
+function ALAMEACHSEC(float):integer;
+function EVAL_TS_TM(float,float,double,UnsignedLong,UnsignedLong):UnsignedLL;
+function EVAL_TS(float,StrlSampleRange,UnsignedLL,UnsignedLL):UnsignedLL; %{scheduling}%
+function CMPSMPINDEX(float,StrlSampleRange,StrlSampleRange):integer;
+function CMPULL(UnsignedLL,UnsignedLL):integer;
+%
+% body part
+%
+var nameofsource:string,nameofcoder:string,nameofmod:string,
+    nameofsummer:string,nameofscopesink:string,nameofsink:string,
+    insample:StrlSampleRange, outsample:StrlSampleRange, 
+    prev_outsample:UnsignedLong, this_outsample:UnsignedLong,
+    prev_time:UnsignedLL, this_time:UnsignedLL, 
+    skip_sample:UnsignedLL,infq:float, outfq:float,
+    diff:float,dtsec:double,tmp:integer  in
+signal start_alarm,end_alarm,
+       Trigger,Missed_Deadline:=INITIAL_UNSIGNEDLL:UnsignedLL,
+       Mark_Wire_S_M:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_Wire_M_M1:=INITIAL_RANGE:StrlSampleRange,
+       Mark_Wire_M_M2:=INITIAL_RANGE:StrlSampleRange,
+       Mark_Wire_M_S1:=INITIAL_RANGE:StrlSampleRange, 
+       Mark_Wire_M_S2:=INITIAL_RANGE:StrlSampleRange,
+       Compute_Wire_S_M, Compute_Wire_M_M1, 
+       Compute_Wire_M_S1, Compute_Wire_M_S2,
+       Ack_Wire_S_M:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Wire_M_M1:=INITIAL_RANGE:StrlSampleRange,
+       Ack_Wire_M_M2:=INITIAL_RANGE:StrlSampleRange, 
+       Ack_Wire_M_S1:=INITIAL_RANGE:StrlSampleRange,
+       Ack_Wire_M_S2:=INITIAL_RANGE:StrlSampleRange,
+       Clock_Wire_S_M, Clock_Wire_M_M1,
+       Clock_Wire_M_S1, Clock_Wire_M_S2,
+       ack_MD in
+%%%%%%%%%%%%%%%%%%%%%
+% create modules
+%%%%%%%%%%%%%%%%%%%%%
+abort
+   nameofsource:=GET_SOURCE("tmp.gz",1);
+   nameofcoder:=GET_CODER(S_OUTPUT_SYMBOL_BITS);
+   nameofmod:=GET_MOD_F(S_OUT_RATE/S_IN_RATE,65000.0f,S_AMPL,S_NUM_SYMB,S_CONST_NUM,S_K,S_ALPHA,S_CENTER_FREQ_MULT);
+   nameofsummer:=GET_SUMMER();
+   nameofscopesink:=GET_SCOPESINK_F(S_DEF_TPD/2.0f,-128,128,500,1);
+   nameofsink:=GET_SINK("138.96.251.3",5001);
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% make topology
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  call CONNECT_MODULES()(nameofscopesink,nameofmod,S_OUT_RATE,8);
+  call CONNECT_MODULES()(nameofsink,nameofsummer,S_OUT_RATE,8);
+  call CONNECT_MODULES()(nameofsummer,nameofmod,S_OUT_RATE,8);
+  call CONNECT_MODULES()(nameofmod,nameofcoder,S_IN_RATE,8);
+  call CONNECT_MODULES()(nameofcoder,nameofsource,S_IN_RATE*S_OUTPUT_SYMBOL_BITS/8,8);
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% initialize parameters
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+  emit Source_module(nameofsource);
+  emit Coder_module(nameofcoder);
+  emit Mod_module(nameofmod);
+  emit Summer_module(nameofsummer);
+  emit Scopesink_module(nameofscopesink);
+  emit Sink_module(nameofsink);
+
+  call INITIAL_SINK()(?Sink_module);
+  call INITIAL_SINK()(?Scopesink_module);
+
+  infq:=GET_FREQUENCY(nameofsource);
+  outfq:=GET_FREQUENCY(nameofsink);
+  diff:=outfq/infq;
+  dtsec:=?inputdt;
+  call INIT_PERF_GRAPH()();%{perfgraph should follow sinks}%
+  call INITGUI_MAIN_START()(); %{gui}%
+  call RUN_GUI_MAIN()();%{gui}%
+  [
+     call START_PERF_GRAPH()();
+     emit Ack_Wire_S_M(INITIAL_RANGE)
+   ||
+     run source1/   
+    TC_SOURCE[signal Source_module/Name;
+	   signal Mark_Wire_S_M/E_Mark_to_Down;%{mark1}%
+	   signal Compute_Wire_S_M/E_Compute_to_Down;
+	   signal Ack_Wire_S_M/Ack_From_Down;
+	   signal Clock_Wire_S_M/snooping;
+	   signal SOURCE_COMPUTEDSR/ComputedSRange;
+	   signal Missed_Deadline/MD_Signal;
+	   signal ack_MD/ack_skip_smpl]
+   ||
+      run  module1/
+    P_MOD[signal Coder_module/Name;
+	  signal Mark_Wire_S_M/S_Mark_from_Up;%{mark1}%
+	  signal Compute_Wire_S_M/S_Compute_from_Up;%{}%
+	  signal Ack_Wire_S_M/Ack_to_Up;%{}%
+	  signal Clock_Wire_S_M/sig_on;%{}%
+	  signal Mark_Wire_M_M1/E_Mark_to_Down;%{mark2}%
+	  signal Compute_Wire_M_M1/E_Compute_to_Down;%{wire2}%
+	  signal Ack_Wire_M_M1/Ack_From_Down;%{wire3}%
+	  signal Clock_Wire_M_M1/snooping;%{wire4}%
+	  signal CODER_COMPUTEDSR/ComputedSRange]
+   ||
+      run  module2/
+    P_MOD1to2[signal Mod_module/Name;
+	      signal Mark_Wire_M_M1/S_Mark_from_Up;%{mark2}%
+	  signal Compute_Wire_M_M1/S_Compute_from_Up;%{wire2}%
+	  signal Ack_Wire_M_M1/Ack_to_Up;%{wire3}%
+	  signal Clock_Wire_M_M1/sig_on;%{wire4}%
+	  signal Mark_Wire_M_S1/E_Mark_to_Down;%{snk1}%
+	  signal Compute_Wire_M_S1/E_Compute_to_Down;%{}%
+	  signal Ack_Wire_M_S1/Ack_From_Down1;%{from sink1}%
+	  signal Ack_Wire_M_M2/Ack_From_Down2;%{from mod3}%
+	  signal Clock_Wire_M_S1/snooping;%{}%
+	  signal MOD_COMPUTEDSR/ComputedSRange]
+   ||
+      run  sink1/
+    SINK[signal Scopesink_module/Name;
+	 signal Mark_Wire_M_S1/S_Mark_from_Up;%{snk1}%
+	 signal Compute_Wire_M_S1/S_Compute_from_Up;
+	 signal Ack_Wire_M_S1/Ack_to_Up;
+	 signal Clock_Wire_M_S1/sig_on;
+	 signal SCOPESINK_COMPUTEDSR/ComputedSRange]
+   ||
+      run  module3/
+    P_MOD[signal Summer_module/Name;
+	  signal Mark_Wire_M_S1/S_Mark_from_Up;%{from mod2}%
+	  signal Compute_Wire_M_S1/S_Compute_from_Up;%{from mod2}%
+	  signal Ack_Wire_M_M2/Ack_to_Up;%{to mod2}%
+	  signal Clock_Wire_M_S1/sig_on;%{to mod2}%
+	  signal Mark_Wire_M_S2/E_Mark_to_Down;%{to snk2}%
+	  signal Compute_Wire_M_S2/E_Compute_to_Down;%{to snk2}%
+	  signal Ack_Wire_M_S2/Ack_From_Down;%{from snk2}%
+	  signal Clock_Wire_M_S2/snooping;%{from snk2}%
+	  signal SUMMER_COMPUTEDSR/ComputedSRange]
+   ||
+      run  sink2/
+    SINK[signal Sink_module/Name;
+	 signal Mark_Wire_M_S2/S_Mark_from_Up;%{snk2}%
+	 signal Compute_Wire_M_S2/S_Compute_from_Up;
+	 signal Ack_Wire_M_S2/Ack_to_Up;
+	 signal Clock_Wire_M_S2/sig_on;
+	 signal SINK_COMPUTEDSR/ComputedSRange]
+%{   ||
+    run MONITOR[signal Mark_Wire_S_M/for_m1;
+		signal SOURCE_SRANGE/SR_for_m1;
+		signal Mark_Wire_M_M1/for_m2;
+		signal CODER_SRANGE/SR_for_m2;
+		signal Mark_Wire_M_S2/for_m3;
+		signal SUMMER_SRANGE/SR_for_m3;
+		signal Mark_Wire_M_S1/for_m4;
+		signal MOD_SRANGE/SR_for_m4]
+}%
+   ||
+    every  immediate start_alarm do
+      this_time:=GET_TIMESTAMP();
+      trap trap_time in
+      loop
+        if(ELAPSE_TIME(this_time,dtsec)>0) then
+          emit end_alarm;
+          exit trap_time
+        end if;
+        pause
+      end loop
+      end trap
+    end every
+   ||
+    loop
+      await Mark_Wire_S_M;
+      emit start_alarm;
+      prev_outsample:=NEWGETWP(nameofsink);
+      await immediate end_alarm;
+      this_outsample:=NEWGETWP(nameofsink);
+      skip_sample:=EVAL_TS_TM(infq,outfq,dtsec,this_outsample,prev_outsample);
+      abort
+         if (CMPULL(skip_sample,INITIAL_UNSIGNEDLL)>0) then
+           sustain Missed_Deadline(skip_sample)
+         else
+           sustain Missed_Deadline(INITIAL_UNSIGNEDLL)
+         end if
+      when immediate ack_MD
+    end loop
+   ||
+    loop
+      await Ack_Wire_M_S1;
+       call STOP_PERF_GRAPH()();
+       call RUN_GUI_MAIN()();
+       call START_PERF_GRAPH()()
+    end loop
+   ]
+when User_Quit
+end signal
+end var
+end module

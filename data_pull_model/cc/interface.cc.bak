@@ -1,0 +1,467 @@
+/********************************************
+* This is * interface.cc *
+*********************************************/
+
+#include <iostream.h>
+#include <string.h>
+#include <VrFileSource.h>
+#include "VrDigMod.h"
+#include "VrSum.h"
+#include "VrBits2Symbols.h"
+#include "VrUDPSink.h"
+#include "VrScopeSink.h"
+#include "MyVrMultiTask.h" /*** is at pspectra/cc/i386/lib/vr/ ***/
+#include "VrGUI.h"
+#include "VrConstellation_defs.h"
+#include "VrTypes.h"
+#include "VrSigProc.h"
+
+#define DEFAULT_TPD 2600.0
+int process_one = 1;
+int persistent = 0;
+int run = 1;
+
+VrGUI *guimain;
+VrScopeSink<char> *scopesink;
+VrDigMod<char,char> *mod;
+VrBits2Symbols* coder;
+
+VrFileSource<char> *source;
+VrUDPSink<char> *sink;
+VrSum<char,char> *summer;
+VrMultiTask *mt;
+
+int center_freq_mult = 4, band=1;
+int out_rate = 400000;
+int in_rate = 2000;
+int offset, const_num = 5;
+int num_symb = 16, output_symbol_bits = 4, K=2;
+float alpha=0.6;
+int ampl=80;
+
+extern "C" {  /* begin extern "C" */
+
+  /***********************************************
+   * This is the definition of function and varialbe
+   * for the Real Control part.
+   ***********************************************/
+
+  VrSigProc **sinks;
+  int numberSinks;
+
+  VrSigProc **goodSinks;
+  int numSinks;
+  int stopFlag;
+  struct timeval initialTime;
+
+  int MarkValue;
+  VrSampleRange SRange;
+  int BufferSizeMultiplier;
+
+  void add(VrSigProc *s){
+    VrSigProc **ss=new (VrSigProc *[numberSinks+1]);
+    ss[numberSinks]=s;
+    if(numberSinks>0){
+      for(int i=0;i<numberSinks;i++)
+	ss[i]=sinks[i];
+      delete [] sinks;
+    }
+    sinks=ss;
+    numberSinks++;
+  }
+
+  void start(){
+//  if(isStarted()) {
+//    fprintf(stderr,"VrMultiTask: already start()ed\n");
+//    exit(-1);
+//  }
+
+  numSinks=0;
+  int i;
+ 
+  if(goodSinks!=NULL)
+    delete goodSinks;
+  goodSinks = new (VrSigProc *[numberSinks]); 
+
+  BufferSizeMultiplier = numberSinks + 1; 
+
+  /* Figure out which sinks are connected and run init()*/
+  for(i=0;i<numberSinks;i++)
+    if(sinks[i]->isConnectedToSource()) {
+      sinks[i]->init_base();
+      goodSinks[numSinks++]=sinks[i];
+    }
+  if(numSinks==0) {
+    fprintf(stderr, "VrMultiTask: No connected sinks!\n");
+  }
+ 
+  //run setup() on all sinks
+  for(i=0;i<numSinks;i++)
+      goodSinks[i]->setup(); 
+
+  startTimer();
+  stopFlag = 0;
+  }
+
+  void process(){
+  schedule();
+  }
+
+  void stop(){
+  if(!isStarted()) {
+    fprintf(stderr, "VrMultiTask.stop(): chain not running.\n");
+    exit(-1);
+  }
+ 
+  stopFlag=1;           // stop threads if present (doesn't wait) */  
+  }
+
+  int isStarted(){
+    return !stopFlag;
+  }
+
+  void schedule(){
+  //find the sink that is the furthest behind
+  float seconds[numSinks];
+  int min_index;
+  int i=0;
+  int incr=0;      
+
+    min_index=0;
+    for(i=0;i<numSinks;i++) {
+      seconds[i] = (goodSinks[i]->getMarkedWP()+incr*goodSinks[min_index]->getMaxOutputSize()) / goodSinks[i]->getSamplingFrequency();
+      if(seconds[i]<seconds[min_index])
+        min_index=i;
+    }
+ 
+    for(i=0;i<numSinks;i++) {
+      VrSampleRange r={goodSinks[min_index]->getMarkedWP()+incr*goodSinks[min_index]->getMaxOutputSize(),goodSinks[min_index]->getMaxOutputSize()};
+      SRange.index=r.index; //Hahnsang
+      SRange.size=r.size;
+      switch(goodSinks[min_index]->markData(r)) {
+        //could add case 3 -- buffer full upstream -- compute whatever
+        //  you can at highest priority
+      case 2:
+        MarkValue=2; //Hahnsang added
+        //data is finished upstream
+        fprintf(stderr, "Inconsistency in scheduler.\n");
+        exit(-1);
+        break;
+      case 1:
+        MarkValue=1; //Hahnsang  
+        //data successfully marked upstream
+        //and more data may be available to compute on this sink
+        goto successfulMark; //break out of the for loop
+        break;
+      case 0:
+        MarkValue=0; //Hahnsang
+        //data upstream is marked but no more can be computed
+        goto successfulMark; //break out of the for loop
+      case -1: //no data can be computed upstream
+        MarkValue=-1; //Hahnsang
+        break; //Hahnsang
+      case -2: //data marked by another thread and not ready yet
+        MarkValue=-2;
+        break;
+      }
+ 
+      seconds[min_index]=HUGE_VAL; //Infinity
+      for(int j=0;j<numSinks;j++) {
+        if(seconds[j]<seconds[min_index])
+          min_index=j;
+      }
+    }   
+
+ successfulMark:  
+
+  if(i < numSinks) {
+    //compute chunk
+    startMarkedModule->compute();
+  } else {
+    YIELD();
+  }
+  }       
+
+  void startTimer(){
+  if (gettimeofday(&initialTime, 0) < 0) {
+    perror("VrMultiTask: gettimeofday failed!!!");
+    exit(1);
+  }
+  } 
+
+  double elapsedTime(){
+  unsigned long usecs;
+  struct timeval t2;
+ 
+  if (gettimeofday(&t2, 0) < 0) {
+    perror("VrMultiTask: gettimeofday failed!!!");
+    exit(1);
+  }
+ 
+  usecs = (t2.tv_sec - initialTime.tv_sec)*1000000 +
+    (t2.tv_usec - initialTime.tv_usec);
+  return usecs/1000000.0;
+  }  
+
+  void init_ctrl_var(){
+    numberSinks=0;
+    goodSinks=NULL;
+    numSinks=0;
+    stopFlag=1;
+    MarkValue=0;
+    BufferSizeMultiplier=1;
+  }
+
+  void destroy_obj(){
+    if (goodSinks!=NULL)
+      delete [] goodSinks;
+    if (sinks!=NULL)
+      delete [] sinks;
+  }
+
+  /* This is defined function for monitoring control varialbe */
+  VrSampleRange* getSRange(){
+    VrSampleRange* VSR=new(VrSampleRange);
+    VSR->index=SRange.index;
+    VSR->size=SRange.size;
+    return VSR;
+  } 
+
+  int getMarkValue(){
+    return MarkValue;
+  }
+
+  int get_numberSinks(){
+    return numberSinks;
+  }
+
+  int get_numSinks(){
+    return numSinks;
+  }
+
+  /********************************************
+   * Predefined Function
+   ********************************************/
+ 
+void set_clear()
+{
+  scopesink->clear();
+}
+
+void set_my_scale(double f) {
+printf ("set scale %f\n", f);
+  scopesink->setSkip(f,0);
+  scopesink->clear();
+}
+
+void set_persistent()
+{
+  persistent = 1 - persistent;
+  scopesink->set_persistent(persistent);
+}
+void set_run()
+{
+  run = 1-run;
+  scopesink->setRun(run);
+}
+
+void(*last_const)();
+void set_sync() { set_my_scale(20); }
+
+void set_base() { band = 0; 
+                  (*last_const)();}
+
+
+void set_pass() { band = 1; 
+                  (*last_const)();}
+
+void set_eye() { set_my_scale(2); }
+
+
+void set_constellation0(){   mod -> change_constellation(alpha, ampl, 2, 8,
+					symbol_phase[0], symbol_amplitude[0], band);
+                             coder -> setOutputBits(1);
+			     mod -> set_sync_symbols(0,1);
+			     last_const = set_constellation0;
+}
+void set_constellation1(){   mod -> change_constellation(alpha, ampl, 4, 6,
+					symbol_phase[1], symbol_amplitude[1], band);
+                             coder -> setOutputBits(2);
+			     mod -> set_sync_symbols(1,3);
+			     last_const = set_constellation1;
+}
+void set_constellation2(){   mod -> change_constellation(alpha, ampl, 8, 4,
+					symbol_phase[2], symbol_amplitude[2], band);
+                             coder -> setOutputBits(3);
+			     mod -> set_sync_symbols(3,7);
+			     last_const = set_constellation2;
+}
+void set_constellation3(){   mod -> change_constellation(alpha, ampl, 4, 6,
+					symbol_phase[3], symbol_amplitude[3], band);
+			     mod -> set_sync_symbols(0,2);
+                             coder -> setOutputBits(2);
+			     last_const = set_constellation3;
+}
+void set_constellation4(){   mod -> change_constellation(alpha, ampl, 8, 4,
+					symbol_phase[4], symbol_amplitude[4], band);
+                             coder -> setOutputBits(3);
+			     mod -> set_sync_symbols(0,4);
+			     last_const = set_constellation4;
+}
+void set_constellation5(){   mod -> change_constellation(alpha, ampl, 16, 2,
+					symbol_phase[5], symbol_amplitude[5], band);
+                             coder -> setOutputBits(4);
+			     mod -> set_sync_symbols(0,15);
+			     last_const = set_constellation5;
+}
+
+//End of Function definition for udp_tx
+
+
+/*********************************************************************
+ * Set Environment
+ *********************************************************************/
+
+  void SetEnvironment(){
+    //    int argc =1; char *argv[1];
+    //    argv[0]="udp_tx";
+    //    argv[1]=NULL;
+
+    //    guimain = new VrGUI(argc, argv);
+    //    last_const = set_constellation5;
+
+    source = new VrFileSource<char>("tmp.gz",1);
+    coder = new VrBits2Symbols(output_symbol_bits);
+    mod = new VrDigMod<char,char>(out_rate/in_rate, 65000.0, ampl, num_symb, symbol_phase[const_num], symbol_amplitude[const_num], K, alpha, center_freq_mult);
+
+    //        (void) VrGUILabel(guimain->top, "Waveforms", 0, 30);
+    //        VrGUILayout *scopelay_modes = guimain->top->horizontal();
+    //        (void) VrGUISpace(scopelay_modes, 50);
+    //        (void) new VrGUIButton(scopelay_modes, "BPSK", set_constellation0);
+    //        (void) new VrGUIButton(scopelay_modes, "4-PAM", set_constellation1);
+    //        (void) new VrGUIButton(scopelay_modes, "8-PAM", set_constellation2);
+    //        (void) new VrGUIButton(scopelay_modes, "QPSK", set_constellation3);
+    //        (void) new VrGUIButton(scopelay_modes, "8-PSK", set_constellation4);
+    //        (void) new VrGUIButton(scopelay_modes, "16-QAM", set_constellation5);
+    //        (void) new VrGUIButton(scopelay_modes, "8-VSB", set_constellation2);
+
+    //        (void) VrGUILabel(guimain->top, "Time domain", 0, 30);
+    //        VrGUILayout *scopelay_main = guimain->top->horizontal();
+    //        VrGUILayout *scopelay = scopelay_main->vertical();
+    //        scopesink = new VrScopeSink<char>(scopelay, DEFAULT_TPD/2, -128, 128, 500,1);
+    scopesink = new VrScopeSink<char>(DEFAULT_TPD/2, -128, 128, 500,1);
+    scopesink->setSkip(1,0);
+
+    //        VrGUILayout *scopelay_slider = scopelay->horizontal();
+    //        (void) new VrGUISlider(scopelay_slider, set_my_scale, "Time", DEFAULT_TPD/100, DEFAULT_TPD);
+    //          VrGUILayout *scopelay2 = scopelay_main->vertical();
+    //              (void) new VrGUIButton(scopelay2, "Baseband", set_base);
+    // 	  (void) new VrGUIButton(scopelay2, "Passband", set_pass);
+    //	  (void) VrGUISpace(scopelay2, 50);
+    //	  (void) new VrGUIButton(scopelay2, " Run ", set_run);
+    //	  (void) new VrGUIButton(scopelay2, "Store", set_persistent);
+    //	  (void) new VrGUIButton(scopelay2, "Clear", set_clear);
+    //	  (void) VrGUISpace(scopelay2, 50);
+    //	  (void) new VrGUIButton(scopelay2, "Sync time", set_sync);
+    //	  (void) new VrGUIButton(scopelay2, "Eye time", set_eye);
+    //	  (void) VrGUISpace(scopelay2, 200);
+
+    //    (void) VrGUISpace(guimain->top, 10);
+
+    sink =new VrUDPSink<char>("localhost",5001);
+    summer =new VrSum<char,char>();
+
+    CONNECT(scopesink, mod, out_rate, 8);
+    CONNECT(sink, summer, out_rate, 8);
+    CONNECT(summer, mod, out_rate, 8);
+    CONNECT(mod, coder, in_rate, 8);
+    CONNECT(coder, source, in_rate * output_symbol_bits / 8, 8);
+
+  }
+
+  void CreateMultiTask (){
+    init_ctrl_var();
+  }
+
+
+/******************************************************
+ * This is for Monitoring Part.
+ ******************************************************/
+
+// Source - get_name
+  const char* TheNameOfSource(){
+    return source->name();
+  }
+
+// CODER - get_name
+
+  const char* TheNameOfCoder(){
+    return coder->name();
+  } 
+ 
+  const char* TheNameOfMod(){
+    return mod->name();
+  } 
+
+  const char* TheNameOfScopesink(){
+    return scopesink->name();
+  }
+
+  const char* TheNameOfSink(){
+    return sink->name();
+  } 
+        
+  const char* TheNameOfSummer(){
+    return summer->name();
+  }
+
+  void AddSink(){
+    add(sink);
+  }
+
+  void AddScopeSink(){
+    add(scopesink);
+  }
+
+  void StartSink(){
+    start();
+  }
+
+  void MTprocess(){
+    process();
+  }
+
+  VrSampleRange *GetSmplRange(){
+    VrSampleRange *x= getSRange();
+    return x;
+  }
+
+  int CcGetMarkValue(){
+    return getMarkValue();
+  }
+  /*
+  int CcGetComputeValue(){
+    return mt->getComputeValue();
+    }*/
+
+/* For INITIALIZE module */
+  int GetNumberofSinks(){
+    return get_numberSinks();
+  }
+
+  int GetNumberofGoodSinks(){
+    return get_numSinks();
+  }
+
+} /* end extern "C" */
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,61 @@
+%##########################################################
+%#  This module is to control Mark_Data modules.
+%##########################################################
+
+module FIT_RANGE_SNK:
+
+type StrlSampleRange;
+type StrlSampleIndex;
+type UnsignedInt;
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_RANGE : StrlSampleRange;
+constant INITIAL_UNSIGNEDINT : UnsignedInt;
+
+input name_module : string;
+input sample_range : StrlSampleRange;
+output input_sample_range: StrlSampleRange;
+
+function DOWNCASTS(StrlSampleRange,string):StrlSampleRange;
+function GETMARKEDWP(string):StrlSampleIndex;
+function ADD_INDEX_SIZE(StrlSampleRange):StrlSampleIndex;
+function SUBTRACT_A_B(StrlSampleIndex,StrlSampleIndex):integer;
+function GETMAXOUTSIZE(string):integer;
+function GET_OUTPUTSIZE(string):UnsignedInt;
+function ROUNDOWN_SIZE(integer,UnsignedInt):integer;
+function SET_SAMPLERANGE(StrlSampleIndex,integer):StrlSampleRange;
+function FORECASTS(StrlSampleRange,string):StrlSampleRange;
+function REAL_MARK_DATA(StrlSampleIndex,integer,StrlSampleRange,string):integer;
+%
+% body part
+%
+
+var input_range:=INITIAL_RANGE:StrlSampleRange,
+    output_range:=INITIAL_RANGE:StrlSampleRange,
+    inside_input:=INITIAL_RANGE:StrlSampleRange,
+    pendingWP:=INITIAL_INDEX:StrlSampleIndex,
+    desiredWP:=INITIAL_INDEX:StrlSampleIndex,
+    requestSize:=0:integer,
+    maxOutSize:=0:integer,
+    temp_int:=0:integer,
+    temp_unsigned:=INITIAL_UNSIGNEDINT:UnsignedInt in
+   
+   await immediate sample_range;
+   input_range:=?sample_range;
+   output_range:=DOWNCASTS(input_range,?name_module);
+   pendingWP:=GETMARKEDWP(?name_module);%{my marked point}%
+   desiredWP:=ADD_INDEX_SIZE(output_range);%{upstream's marked point}%
+   requestSize:=SUBTRACT_A_B(desiredWP,pendingWP);%{evaluate datasize}%
+   maxOutSize:=GETMAXOUTSIZE(?name_module);
+   if requestSize>maxOutSize then
+      requestSize:=maxOutSize
+   end if;
+   temp_unsigned:=GET_OUTPUTSIZE(?name_module);%{get output unit}%
+   requestSize:=ROUNDOWN_SIZE (requestSize,temp_unsigned);
+   %{size:=((size/unit)*unit)}%
+   output_range:=SET_SAMPLERANGE(pendingWP,requestSize);%{set my SampleRange}%
+   inside_input:=FORECASTS(output_range,?name_module);
+   temp_int:=REAL_MARK_DATA(pendingWP,requestSize,inside_input,?name_module);
+   emit input_sample_range(inside_input);
+end var
+end module

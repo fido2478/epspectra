@@ -1,0 +1,119 @@
+%##########################################################
+%#  This module is to control COMPUTE_DATA modules.
+%##########################################################
+
+module COMPUTE_DATA_SRC:
+
+type StrlSampleIndex;
+type StrlSampleRange;
+type StrlSampleSize;
+%{type Debug4Var;}%
+
+constant INITIAL_INDEX : StrlSampleIndex;
+constant INITIAL_SIZE : StrlSampleSize;
+constant INITIAL_RANGE : StrlSampleRange;
+%{constant INITIAL_DEBUG4VAR : Debug4Var;}%
+
+input name_module : string;
+input get_sig:integer;
+output return_sig:integer;
+%{output debug_temp:Debug4Var;}%
+
+output MYMARKED_DATA:StrlSampleRange;
+
+%{function DEBUG_INT(string,integer):Debug4Var;}%
+%{function DEBUG_INDEX(string,StrlSampleIndex):Debug4Var;}%
+%{function DEBUG_RANGE(string,StrlSampleRange):Debug4Var;}%
+function CHECK_MYWRITERLL(string):integer;
+function CHECK_MYMARKEDDATA_SIZE(string):integer;
+function GET_NUMBERINPUTS(string):integer;
+function REALCOMPUTEDATA(string,integer):StrlSampleSize;
+function CMPSAMPLESIZE(StrlSampleSize,StrlSampleSize):integer;
+function GET_MYMARKEDINDEX(string):StrlSampleIndex;
+function GET_MYMARKEDSIZE(string):StrlSampleSize;
+procedure SET_MARKEDWP()(string,StrlSampleIndex);
+function ADD_SAMPLEINDEX(StrlSampleIndex,StrlSampleSize):StrlSampleIndex;
+procedure WRITEDATA()(string,integer);
+function GETWP(string):StrlSampleIndex;
+function GET_MYMARKEDDATA(string):StrlSampleRange;
+%{procedure LOCALAWAITTICKSTART()(string); }% %{perfgraph}%
+%{procedure LOCALAWAITTICKSTOP()(string); }% %{perfgraph}%
+procedure LOCALINCAWAITTICK()(string);%{perfgraph}%
+%
+% body part
+%
+
+var temp_int:=0:integer,
+    not_source:=0:integer,
+    not_complete_flag:=0:integer,
+    MY_Module_Name:string,
+    temp_index:=INITIAL_INDEX:StrlSampleIndex,
+    temp_range:=INITIAL_RANGE:StrlSampleRange,
+    complete_var:=INITIAL_SIZE:StrlSampleSize in
+   trap EXIT_FUNC in
+      
+      await immediate name_module;
+      MY_Module_Name:=?name_module;
+
+      trap GOTO_UNMARK in
+
+	 if CHECK_MYWRITERLL(MY_Module_Name)=0 then
+	    call LOCALINCAWAITTICK()(MY_Module_Name);%{perfgraph}%
+%{	    call LOCALAWAITTICKSTART()(MY_Module_Name); }% %{perfgraph}%
+	    await tick;
+%{	    call LOCALAWAITTICKSTOP()(MY_Module_Name); }% %{perfgraph}%
+	    emit return_sig(0);
+%{	    emit debug_temp(DEBUG_INT("myWriterLL",0));}%
+	    exit EXIT_FUNC
+	 end if;
+
+	 if CHECK_MYMARKEDDATA_SIZE(MY_Module_Name)=0 then
+	    call LOCALINCAWAITTICK()(MY_Module_Name);%{perfgraph}%	    
+%{	    call LOCALAWAITTICKSTART()(MY_Module_Name); }% %{perfgraph}%
+	    await tick;
+%{	    call LOCALAWAITTICKSTOP()(MY_Module_Name); }% %{perfgraph}%
+	    emit return_sig(0);
+%{	    emit debug_temp(DEBUG_INT("MyMarkedData.size",0));}%
+	    exit EXIT_FUNC
+	 end if;
+
+	 if ?get_sig < 0 then
+	    not_complete_flag:=not_complete_flag-1;
+	    exit GOTO_UNMARK
+	 end if;
+	 call LOCALINCAWAITTICK()(MY_Module_Name);%{perfgraph}%	    
+%{	 call LOCALAWAITTICKSTART()(MY_Module_Name); }% %{perfgraph}%
+	 await tick;
+%{	 call LOCALAWAITTICKSTOP()(MY_Module_Name); }% %{perfgraph}%
+	 complete_var:=REALCOMPUTEDATA(MY_Module_Name,not_source);
+	 
+	 if CMPSAMPLESIZE(GET_MYMARKEDSIZE(MY_Module_Name),complete_var)>0 then
+	    not_complete_flag:=not_complete_flag-1
+	 end if;
+      end trap;%{GOTO_UNMARK}%
+
+%{start Unmark section}%
+      if not_complete_flag < 0 then
+	 temp_index:=ADD_SAMPLEINDEX(GET_MYMARKEDINDEX(MY_Module_Name),complete_var);
+	 call LOCALINCAWAITTICK()(MY_Module_Name);%{perfgraph}%	    
+%{	 call LOCALAWAITTICKSTART()(MY_Module_Name); }% %{perfgraph}%
+	 await tick;
+%{	 call LOCALAWAITTICKSTOP()(MY_Module_Name); }% %{perfgraph}%
+	 call SET_MARKEDWP()(MY_Module_Name,temp_index)
+      end if;
+      
+      call WRITEDATA()(MY_Module_Name,not_source);
+      temp_index:=GETWP(MY_Module_Name);
+      emit MYMARKED_DATA(GET_MYMARKEDDATA(?name_module));
+%{      run GET_MY_MARKED_DATA[signal name_module/name_module;
+			   signal MYMARKED_DATA/LOCAL_MYMARKED];
+}%
+      emit return_sig(not_complete_flag);
+%{      emit debug_temp(DEBUG_INT("return ",not_complete_flag));}%
+      call LOCALINCAWAITTICK()(MY_Module_Name);%{perfgraph}%	    
+%{      call LOCALAWAITTICKSTART()(MY_Module_Name); }% %{perfgraph}%
+      await tick;
+%{      call LOCALAWAITTICKSTOP()(MY_Module_Name); }% %{perfgraph}%
+   end trap
+end var
+end module

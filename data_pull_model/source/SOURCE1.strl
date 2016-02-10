@@ -1,0 +1,29 @@
+%
+%   SOURCE module 
+%
+module SOURCE:
+
+type StrlSampleRange;
+constant INITIAL_RANGE : StrlSampleRange;
+
+input start_mark;
+output output_compute:integer;%{compute}%
+input name:string;
+input input_sample_range:StrlSampleRange;
+input await_mark_sink:integer;
+output My_return_value:integer;
+output MyMarkedData:StrlSampleRange;
+%
+%  body part
+%
+signal My_Sample_Range:=INITIAL_RANGE:StrlSampleRange in
+   loop 
+      await immediate start_mark;
+      emit My_Sample_Range(?input_sample_range);
+      run MARK_DATA_SRC;
+      await immediate await_mark_sink;
+      run COMPUTE_DATA_SRC
+   end loop
+end signal
+end module
+
